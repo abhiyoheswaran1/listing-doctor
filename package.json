@@ -8,9 +8,11 @@
     "lint": "eslint . --max-warnings=0",
     "ai:audit": "node scripts/ai-harness/audit-listing-doctor.mjs",
     "ai:hourly-report": "node scripts/ai-harness/create-hourly-report.mjs",
-    "test": "vitest run"
+    "test": "vitest run",
+    "postinstall": "components copy-fonts --path=public"
   },
   "dependencies": {
+    "@smg-automotive/components": "^25.28.0",
     "@types/node": "^24.10.1",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",

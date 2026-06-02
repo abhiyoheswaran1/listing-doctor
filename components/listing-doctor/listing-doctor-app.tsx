@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { AutoScout24Icon } from "@smg-automotive/components";
 import {
   AlertTriangle,
   ArrowLeft,
@@ -268,7 +269,8 @@ export function ListingDoctorApp() {
       <div className="border-b border-line bg-panel">
         <div className="mx-auto flex min-h-14 max-w-[1360px] flex-wrap items-center justify-between gap-3 px-4 py-2 sm:px-6">
           <div className="flex items-center gap-3">
-            <div className="flex h-9 items-center rounded-[3px] border border-accent bg-accent px-3 text-sm font-black text-accent-ink shadow-sm">
+            <div className="flex h-9 items-center gap-2 rounded-[3px] border border-accent bg-accent px-3 text-sm font-black text-accent-ink shadow-sm">
+              <AutoScout24Icon width="20px" height="20px" aria-hidden="true" />
               AutoScout24
             </div>
             <div className="h-8 w-px bg-line" />

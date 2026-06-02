@@ -28,7 +28,7 @@ body {
   margin: 0;
   background: oklch(var(--color-base));
   color: oklch(var(--color-ink));
-  font-family: Arial, Helvetica, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: var(--font-primary, Arial, Helvetica, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif);
   text-rendering: geometricPrecision;
 }
 

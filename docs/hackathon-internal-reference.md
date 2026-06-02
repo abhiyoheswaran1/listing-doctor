@@ -28,6 +28,11 @@ The app is not a buyer-side comparison assistant, not a car recommendation produ
 
 - Single App Router page at `app/page.tsx`.
 - AutoScout24-style app shell in `components/listing-doctor/listing-doctor-app.tsx`.
+- Official SMG Automotive component package integration:
+  - `app/providers.tsx` wraps the app in `ThemeProvider theme="autoscout24"`.
+  - Hosted Make It Sans fonts are loaded from `@smg-automotive/components/fonts/hosted`.
+  - `components/ui/button.tsx` adapts the official button to the app's local button API.
+  - The header uses the official AutoScout24 icon from `@smg-automotive/components`.
 - Three-step local insertion flow:
   - Page 1: identify make, model, production month, and production year from local catalogue data.
   - Page 2: pick the exact version filtered by selected production date.
@@ -75,6 +80,8 @@ Framework and stack:
 - React 19.
 - TypeScript.
 - TailwindCSS.
+- `@smg-automotive/components` for AutoScout24 theme, fonts, iconography, and the local button adapter.
+- Chakra UI and Emotion via `@smg-automotive/components`.
 - Lucide React icons.
 - Minimal local UI primitives, not a full shadcn/ui install.
 - Vitest.
@@ -83,6 +90,7 @@ Framework and stack:
 Main routes:
 
 - `app/page.tsx`: renders `ListingDoctorApp`.
+- `app/providers.tsx`: client-side AutoScout24 theme/font provider from `@smg-automotive/components`.
 - `app/api/diagnose-listing/route.ts`: structured listing diagnosis.
 
 Main components:
@@ -96,7 +104,8 @@ Main components:
 - `components/listing-doctor/diagnosis-panel.tsx`: reusable report renderer, including the simulated prediction section.
 - `components/listing-doctor/insertion-section.tsx`: collapsible insertion section wrapper.
 - `components/listing-doctor/form-controls.tsx`: field/input/select/textarea wrappers.
-- `components/ui/button.tsx`, `badge.tsx`, `progress.tsx`: local UI primitives.
+- `components/ui/button.tsx`: local button API backed by the official SMG Automotive button.
+- `components/ui/badge.tsx`, `progress.tsx`: local UI primitives for status labels and compact score bars.
 
 Domain logic:
 
@@ -333,12 +342,13 @@ Potential business/product impact:
 - No external AI, OCR, or LLM call.
 - Description assistance is deterministic and uses local synthetic comparables, not real seller history or real successful user listing data.
 - Simulated prediction is deterministic and uses synthetic comparable listings, not a trained ML model.
-- No official AutoScout24 integration.
+- No official AutoScout24 backend, listing draft, seller cockpit, or marketplace-system integration. The app only uses the public SMG Automotive component package for UI theming/components.
 - No live URL fetch or scraping.
 - No real image quality or damage analysis.
 - No real market price benchmarking.
 - Mock market feedback uses local synthetic listings.
 - API validation is lightweight and hand-written.
+- Official component package integration is partial. The app uses the AutoScout24 provider, fonts, iconography, and button adapter, but it does not yet replace every form primitive with SMG components.
 - No rate limiting, monitoring, analytics, or production observability.
 - No E2E browser tests are currently committed.
 - The AI harness is documentation plus a local audit script. It does not run autonomous agents by itself.

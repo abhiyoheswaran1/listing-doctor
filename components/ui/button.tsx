@@ -1,4 +1,13 @@
-import type { ButtonHTMLAttributes, PropsWithChildren } from "react";
+"use client";
+
+import { Button as AutoScoutButton } from "@smg-automotive/components";
+import type {
+  ButtonHTMLAttributes,
+  ComponentType,
+  MouseEventHandler,
+  PropsWithChildren,
+  ReactNode,
+} from "react";
 
 import { cn } from "@/lib/utils";
 
@@ -9,6 +18,21 @@ type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: ButtonVariant;
   size?: ButtonSize;
 };
+
+const OfficialButton = AutoScoutButton as unknown as ComponentType<{
+  as?: "button";
+  type?: "button" | "submit" | "reset";
+  variant?: "primary" | "secondary" | "success" | "transparent";
+  size?: "md" | "lg";
+  isDisabled?: boolean;
+  onClick?: MouseEventHandler<HTMLButtonElement>;
+  className?: string;
+  height?: string;
+  minHeight?: string;
+  px?: string;
+  fontSize?: string;
+  children?: ReactNode;
+} & Omit<ButtonHTMLAttributes<HTMLButtonElement>, "disabled" | "size">>;
 
 const variants: Record<ButtonVariant, string> = {
   primary:
@@ -25,15 +49,42 @@ const sizes: Record<ButtonSize, string> = {
   md: "h-9 gap-2 px-3 text-sm",
 };
 
+const officialVariants: Record<ButtonVariant, "primary" | "secondary" | "transparent"> = {
+  primary: "primary",
+  secondary: "secondary",
+  ghost: "transparent",
+  danger: "secondary",
+};
+
+const officialSizes: Record<ButtonSize, "md" | "lg"> = {
+  sm: "md",
+  md: "md",
+};
+
+const officialSizeProps: Record<ButtonSize, { height: string; minHeight: string; px: string; fontSize: string }> = {
+  sm: { height: "2rem", minHeight: "2rem", px: "0.625rem", fontSize: "0.75rem" },
+  md: { height: "2.25rem", minHeight: "2.25rem", px: "0.75rem", fontSize: "0.875rem" },
+};
+
 export function Button({
   className,
   variant = "secondary",
   size = "md",
   children,
+  disabled,
+  type = "button",
+  onClick,
   ...props
 }: PropsWithChildren<ButtonProps>) {
   return (
-    <button
+    <OfficialButton
+      as="button"
+      type={type}
+      variant={officialVariants[variant]}
+      size={officialSizes[size]}
+      isDisabled={disabled}
+      onClick={onClick}
+      {...officialSizeProps[size]}
       className={cn(
         "inline-flex items-center justify-center rounded-[3px] border font-bold shadow-sm transition disabled:cursor-not-allowed disabled:opacity-55",
         variants[variant],
@@ -43,6 +94,6 @@ export function Button({
       {...props}
     >
       {children}
-    </button>
+    </OfficialButton>
   );
 }

@@ -120,9 +120,10 @@ curl -X POST http://127.0.0.1:3020/api/diagnose-listing \
 ## Architecture
 
 - `app/page.tsx`: app entry point.
+- `app/providers.tsx`: AutoScout24 theme and hosted Make It Sans font provider from `@smg-automotive/components`.
 - `app/api/diagnose-listing/route.ts`: structured listing diagnosis API.
 - `components/listing-doctor/*`: insertion editor, live Doctor rail, and reusable diagnosis report.
-- `components/ui/*`: lightweight button, badge, and progress primitives.
+- `components/ui/*`: lightweight primitives. The local button wrapper uses the official SMG Automotive button while preserving the app's existing API.
 - `lib/listing-doctor/types.ts`: shared listing, report, and API response types.
 - `lib/listing-doctor/diagnosisReadiness.ts`: prevents early API diagnosis before version-derived core vehicle data exists.
 - `lib/listing-doctor/analyze.ts`: single source of truth for rule-based scoring.
@@ -144,6 +145,7 @@ curl -X POST http://127.0.0.1:3020/api/diagnose-listing \
 - Description assistance uses the current draft and local synthetic successful comparables. It does not use real seller history, real buyer behavior data, or an external AI model.
 - The predictive layer is simulated from synthetic comparable listings and explainable scores. It is not a trained model and should not be presented as real ML.
 - No authentication, rate limiting, monitoring, persistence, live URL fetch, scraping, or production AutoScout24 system integration is implemented.
+- Official SMG Automotive component usage is partial: theme, hosted fonts, AutoScout24 iconography, and button styling are integrated, but the whole form system is not fully migrated.
 
 ## Future Roadmap
 
