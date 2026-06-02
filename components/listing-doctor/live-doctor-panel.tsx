@@ -20,6 +20,7 @@ import {
 import { Progress } from "@/components/ui/progress";
 import type { InsertionPage } from "@/lib/listing-doctor/flow";
 import type { DescriptionStaleness } from "@/lib/listing-doctor/descriptionStaleness";
+import { getActionDetailClassName } from "@/lib/listing-doctor/liveDoctorPanelClasses";
 import type { ImpactLevel, ListingDraft, ListingReport } from "@/lib/listing-doctor/types";
 import { cn } from "@/lib/utils";
 
@@ -372,7 +373,7 @@ function NextAction({ action }: { action: SectionAction }) {
               Current section action
             </p>
             <p className="mt-1 text-sm font-black leading-5 text-ink">{action.title}</p>
-            <p className="doctor-priority-detail mt-1 line-clamp-2 text-xs leading-5 text-muted">{action.detail}</p>
+            <p className={getActionDetailClassName()}>{action.detail}</p>
           </div>
         </div>
         {action.scoreLift ? (

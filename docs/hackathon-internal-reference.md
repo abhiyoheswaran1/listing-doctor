@@ -40,7 +40,7 @@ The app is not a buyer-side comparison assistant, not a car recommendation produ
 - Shared diagnosis engine in `lib/listing-doctor/analyze.ts`.
 - Shared report generation in `lib/listing-doctor/generateReport.ts`.
 - Shared report UI in `components/listing-doctor/diagnosis-panel.tsx`.
-- Sticky section-aware live Doctor panel in `components/listing-doctor/live-doctor-panel.tsx`. It focuses only on the active form section, is bounded to the visible browser height, and hides lower-priority details on shorter screens instead of creating a second scroll area.
+- Sticky section-aware live Doctor panel in `components/listing-doctor/live-doctor-panel.tsx`. It focuses only on the active form section, is bounded to the visible browser height, keeps the current section action readable, and hides lower-priority details on shorter screens instead of creating a second scroll area.
 - Inline description assistant in `components/listing-doctor/listing-details-page.tsx` with `Help me write` and `Make mine better` actions.
 - Generated-description staleness tracking in `lib/listing-doctor/descriptionStaleness.ts`, surfaced in the details page, Doctor rail, and footer action area.
 - Simulated ML-style prediction layer in `lib/listing-doctor/predictiveInsights.ts`, surfaced in the compact Doctor rail and full report.
