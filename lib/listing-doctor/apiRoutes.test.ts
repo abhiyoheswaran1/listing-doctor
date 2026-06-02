@@ -33,4 +33,14 @@ describe("diagnosis API routes", () => {
     expect(payload.details).toContain("listing is required");
   });
 
+  test("structured listing route diagnoses drafts before a description is written", async () => {
+    const listing = { ...demoListings[0], description: "" };
+    const response = await diagnoseListing(jsonRequest("/api/diagnose-listing", { listing }));
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload.source).toBe("structured");
+    expect(payload.diagnosis.scores.descriptionQuality).toBeLessThan(60);
+    expect(payload.diagnosis.descriptionFeedback.join(" ")).toMatch(/short|description/i);
+  });
 });

@@ -18,7 +18,7 @@ Implemented flow:
 - Seller enters listing details, equipment, technical data, EV battery data, image coverage, and description.
 - In the description section, the seller can generate a fresh buyer-facing description or improve their own text using deterministic local rules and synthetic successful comparable listings.
 - If generated description copy becomes stale after important fields change, the UI warns the seller and offers refresh, review, or continue-anyway actions.
-- The browser calls `POST /api/diagnose-listing`.
+- After version selection unlocks the listing-data page, the browser calls `POST /api/diagnose-listing` as the seller edits.
 - The API calls the shared diagnosis engine.
 - The UI renders compact live coaching by default: overall health, current section focus, and one action for the field group the seller is editing. The full report stays behind a `Review report` reveal.
 
@@ -33,7 +33,7 @@ The app is not a buyer-side comparison assistant, not a car recommendation produ
   - Page 2: pick the exact version filtered by selected production date.
   - Page 3: edit listing details with live Doctor support.
 - Manual API dogfooding:
-  - The UI calls `POST /api/diagnose-listing`.
+  - The UI calls `POST /api/diagnose-listing` only after the seller reaches listing-data entry with a selected version and core vehicle data.
   - The compact `Diagnose` backup action also calls `POST /api/diagnose-listing`.
   - The returned `ListingReport` drives the compact live Doctor panel and the optional full diagnosis report.
 - Structured diagnosis API at `app/api/diagnose-listing/route.ts`.
@@ -102,6 +102,7 @@ Domain logic:
 
 - `lib/listing-doctor/types.ts`: listing, report, and API response types.
 - `lib/listing-doctor/apiPayload.ts`: lightweight structured listing API payload validation.
+- `lib/listing-doctor/diagnosisReadiness.ts`: local readiness rule that prevents early Page 1/Page 2 API validation errors before a selected version and drivetrain/body data exist.
 - `lib/listing-doctor/analyze.ts`: core rule-based diagnosis/scoring.
 - `lib/listing-doctor/generateReport.ts`: improved title, rewritten description, and checklist generation.
 - `lib/listing-doctor/flow.ts`: insertion flow unlock/step state.
@@ -183,6 +184,8 @@ Synthetic past listings now include richer marketplace-style fields: production 
 ### `POST /api/diagnose-listing`
 
 Purpose: diagnose a structured listing payload using the shared report generator.
+
+Validation requires the core structured listing shape, including make, model, version-derived drivetrain/body fields, numeric price/mileage/photo count, enums, `photoChecklist`, and `keyFeatures`. `description` must be present as a string but can be empty so the Doctor can score missing listing copy instead of rejecting an in-progress draft.
 
 Request:
 
@@ -379,6 +382,7 @@ Long-term:
 - Add deterministic generated mock data in `lib/listing-doctor/mockData.ts`.
 - Add catalogue makes/models/versions in `lib/listing-doctor/catalogue.ts`.
 - Modify API payload rules in `lib/listing-doctor/apiPayload.ts`.
+- Modify UI/API diagnosis readiness in `lib/listing-doctor/diagnosisReadiness.ts`.
 - Modify structured diagnosis API behavior in `app/api/diagnose-listing/route.ts`.
 - Modify UI flow in `components/listing-doctor/listing-doctor-app.tsx` and page components.
 - Modify report rendering in `components/listing-doctor/diagnosis-panel.tsx`.

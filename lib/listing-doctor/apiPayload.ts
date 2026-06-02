@@ -48,7 +48,7 @@ export function validateListingPayload(value: unknown): string[] {
   requireString(value, "fuelType", details);
   requireString(value, "transmission", details);
   requireString(value, "bodyType", details);
-  requireString(value, "description", details);
+  requireString(value, "description", details, { allowEmpty: true });
   requireNumber(value, "photoCount", details);
 
   requireEnum(value, "sellerType", sellerTypes, details);
@@ -78,8 +78,13 @@ export function asListingDraft(value: unknown): ListingDraft {
   return value as ListingDraft;
 }
 
-function requireString(value: Record<string, unknown>, key: string, details: string[]) {
-  if (typeof value[key] !== "string" || !(value[key] as string).trim()) {
+function requireString(
+  value: Record<string, unknown>,
+  key: string,
+  details: string[],
+  options: { allowEmpty?: boolean } = {},
+) {
+  if (typeof value[key] !== "string" || (!options.allowEmpty && !(value[key] as string).trim())) {
     details.push(`${key} is required`);
   }
 }

@@ -124,6 +124,7 @@ curl -X POST http://127.0.0.1:3020/api/diagnose-listing \
 - `components/listing-doctor/*`: insertion editor, live Doctor rail, and reusable diagnosis report.
 - `components/ui/*`: lightweight button, badge, and progress primitives.
 - `lib/listing-doctor/types.ts`: shared listing, report, and API response types.
+- `lib/listing-doctor/diagnosisReadiness.ts`: prevents early API diagnosis before version-derived core vehicle data exists.
 - `lib/listing-doctor/analyze.ts`: single source of truth for rule-based scoring.
 - `lib/listing-doctor/generateReport.ts`: diagnosis report generation.
 - `lib/listing-doctor/descriptionAssistant.ts`: deterministic concise SEO description drafting and rewrite helper.

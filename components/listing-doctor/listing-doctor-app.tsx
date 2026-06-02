@@ -19,6 +19,7 @@ import {
   type DescriptionAssistantMode,
   generateListingDescription,
 } from "@/lib/listing-doctor/descriptionAssistant";
+import { canDiagnoseDraft } from "@/lib/listing-doctor/diagnosisReadiness";
 import {
   createDescriptionSnapshot,
   getDescriptionStaleness,
@@ -91,6 +92,7 @@ export function ListingDoctorApp() {
       descriptionStaleness.isStale,
   );
   const shouldPauseForStaleDescription = hasStaleGeneratedDescription && !allowStaleDescription;
+  const diagnosisReady = activePage === "details" && canDiagnoseDraft(listing);
 
   const diagnoseListing = useCallback(
     async (currentListing: ListingDraft, signal?: AbortSignal) => {
@@ -135,7 +137,7 @@ export function ListingDoctorApp() {
   }, [descriptionStaleness.summary]);
 
   useEffect(() => {
-    if (!listing.make || !listing.model) {
+    if (!diagnosisReady) {
       setManualReport(null);
       setDiagnosisStatus("idle");
       setDiagnosisError(null);
@@ -151,7 +153,7 @@ export function ListingDoctorApp() {
       window.clearTimeout(timeout);
       controller.abort();
     };
-  }, [diagnoseListing, listing]);
+  }, [diagnoseListing, diagnosisReady, listing]);
 
   const loadDemo = () => {
     const demo = demoListings.find((item) => item.id === selectedDemoId) ?? demoListings[0];
@@ -194,6 +196,13 @@ export function ListingDoctorApp() {
   };
 
   const handleDiagnoseClick = () => {
+    if (!diagnosisReady) {
+      setManualReport(null);
+      setDiagnosisStatus("idle");
+      setDiagnosisError(null);
+      return;
+    }
+
     if (activePage === "details" && shouldPauseForStaleDescription) {
       setStaleDescriptionWarningVisible(true);
       return;
@@ -290,7 +299,7 @@ export function ListingDoctorApp() {
                   variant="secondary"
                   className="h-7 px-2 text-[11px] shadow-none"
                   onClick={handleDiagnoseClick}
-                  disabled={diagnosisStatus === "loading" || !listing.make || !listing.model}
+                  disabled={diagnosisStatus === "loading" || !diagnosisReady}
                 >
                   {diagnosisStatus === "loading" ? (
                     <Loader2 className="size-3 animate-spin" aria-hidden="true" />
