@@ -33,6 +33,10 @@ import {
   retagUploadedImage,
   toggleDemoPhotoSlot,
 } from "@/lib/listing-doctor/imageUploads";
+import {
+  parseRequiredNumberInputValue,
+  requiredNumberInputValue,
+} from "@/lib/listing-doctor/numberInputs";
 import { estimateOriginalNewPrice } from "@/lib/listing-doctor/pricing";
 import {
   photoChecklistItems,
@@ -110,7 +114,7 @@ export function ListingDetailsPage({
   };
 
   const updateNumber = (key: "firstRegistrationYear" | "priceChf" | "mileageKm", value: string) => {
-    update(key, Number.parseInt(value || "0", 10) as ListingDraft[typeof key]);
+    update(key, parseRequiredNumberInputValue(value) as ListingDraft[typeof key]);
   };
 
   const updateTechnical = <K extends keyof TechnicalData>(key: K, value: TechnicalData[K]) => {
@@ -254,14 +258,16 @@ export function ListingDetailsPage({
             type="number"
             min={1980}
             max={2026}
-            value={listing.firstRegistrationYear ?? listing.productionYear ?? listing.year}
+            value={requiredNumberInputValue(
+              listing.firstRegistrationYear ?? listing.productionYear ?? listing.year,
+            )}
             onChange={(event) => updateNumber("firstRegistrationYear", event.target.value)}
           />
           <TextInput
             label="Mileage"
             type="number"
             min={0}
-            value={listing.mileageKm}
+            value={requiredNumberInputValue(listing.mileageKm)}
             onChange={(event) => updateNumber("mileageKm", event.target.value)}
             required
           />
@@ -311,7 +317,7 @@ export function ListingDetailsPage({
             label="Price CHF"
             type="number"
             min={0}
-            value={listing.priceChf}
+            value={requiredNumberInputValue(listing.priceChf)}
             onChange={(event) => updateNumber("priceChf", event.target.value)}
             required
           />
