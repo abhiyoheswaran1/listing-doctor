@@ -19,7 +19,7 @@ const diffStat = runGit(["diff", "--stat"], 80);
 const agent = args.agent ?? "Needs agent name";
 const goal = args.goal ?? "Needs hourly goal";
 const changed = args.changed ?? "Needs summary of files or behavior changed";
-const improvement = args.improvement ?? "Needs explanation of how this improved Listing Doctor";
+const improvement = args.improvement ?? "Needs explanation of how this improved Listing Coach";
 const validation = args.validation ?? "Needs validation commands and results";
 const risks = args.risks ?? "Needs risks, gaps, or follow-up notes";
 const next = args.next ?? "Needs recommended next-hour focus";
@@ -40,7 +40,7 @@ ${goal}
 
 ${changed}
 
-## How Listing Doctor Improved
+## How Listing Coach Improved
 
 ${improvement}
 

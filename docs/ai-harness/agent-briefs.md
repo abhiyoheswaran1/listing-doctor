@@ -122,7 +122,7 @@ Validation:
 
 ## UI/UX Insertion Flow Agent
 
-Mission: make the insertion flow and sticky Doctor panel calmer, clearer, and closer to AutoScout24-style form behavior.
+Mission: make the insertion flow and sticky Coach panel calmer, clearer, and closer to AutoScout24-style form behavior.
 
 Read first:
 
@@ -137,13 +137,13 @@ Allowed:
 
 - Reduce clutter.
 - Improve hierarchy, spacing, labels, and section-aware coaching.
-- Make the Doctor panel more useful at the current field/section.
+- Make the Coach panel more useful at the current field/section.
 
 Forbidden:
 
 - Do not add a landing page.
-- Do not make Listing Doctor a separate wizard step.
-- Do not hide required insertion fields behind the Doctor.
+- Do not make Listing Coach a separate wizard step.
+- Do not hide required insertion fields behind the Coach.
 
 Validation:
 

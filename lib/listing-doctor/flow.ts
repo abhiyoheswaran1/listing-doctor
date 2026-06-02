@@ -104,7 +104,7 @@ function getFooterStatus(
 ) {
   if (!validProductionDate) return "Select a valid catalogue production date";
   if (activePage === "identify") return "Catalogue identity ready for version selection";
-  if (!versionSelected) return "Select the exact version to unlock Doctor";
+  if (!versionSelected) return "Select the exact version to unlock live coaching";
   if (activePage === "version") return "Version selected, continue to listing data";
   return "Live score available";
 }

@@ -1,4 +1,4 @@
-# Listing Doctor Hackathon Internal Reference
+# Listing Coach Hackathon Internal Reference
 
 Last reviewed from codebase: 2026-06-02
 
@@ -6,7 +6,7 @@ This document reflects the current repository implementation. Update it whenever
 
 ## 1. Project Overview
 
-Listing Doctor is a local Next.js hackathon MVP for a seller-side vehicle listing quality assistant. It diagnoses a draft listing before publication and returns listing quality scoring, trust gaps, photo guidance, pricing feedback, likely buyer objections, a rewritten description, and a pre-publish checklist.
+Listing Coach is a local Next.js hackathon MVP for a seller-side vehicle listing quality assistant. It diagnoses a draft listing before publication and returns listing quality scoring, trust gaps, photo guidance, pricing feedback, likely buyer objections, a rewritten description, and a pre-publish checklist.
 
 The product appears to be for marketplace sellers, dealer operations teams, seller success teams, support teams, and hackathon judges evaluating listing-quality coaching inside a vehicle marketplace.
 
@@ -36,19 +36,19 @@ The app is not a buyer-side comparison assistant, not a car recommendation produ
 - Three-step local insertion flow:
   - Page 1: identify make, model, production month, and production year from local catalogue data.
   - Page 2: pick the exact version filtered by selected production date.
-  - Page 3: edit listing details with live Doctor support.
+  - Page 3: edit listing details with live Coach support.
 - Manual API dogfooding:
   - The UI calls `POST /api/diagnose-listing` only after the seller reaches listing-data entry with a selected version and core vehicle data.
-  - The compact `Diagnose` backup action also calls `POST /api/diagnose-listing`.
-  - The returned `ListingReport` drives the compact live Doctor panel and the optional full diagnosis report.
+  - The compact `Refresh` backup action also calls `POST /api/diagnose-listing`.
+  - The returned `ListingReport` drives the compact live Coach panel and the optional full diagnosis report.
 - Structured diagnosis API at `app/api/diagnose-listing/route.ts`.
 - Shared diagnosis engine in `lib/listing-doctor/analyze.ts`.
 - Shared report generation in `lib/listing-doctor/generateReport.ts`.
 - Shared report UI in `components/listing-doctor/diagnosis-panel.tsx`.
-- Sticky section-aware live Doctor panel in `components/listing-doctor/live-doctor-panel.tsx`. It focuses only on the active form section, is bounded to the visible browser height, keeps the current section action readable, and hides lower-priority details on shorter screens instead of creating a second scroll area.
+- Sticky section-aware live Coach panel in `components/listing-doctor/live-doctor-panel.tsx`. It focuses only on the active form section, is bounded to the visible browser height, keeps one recommended action readable, and hides lower-priority details on shorter screens instead of creating a second scroll area.
 - Inline description assistant in `components/listing-doctor/listing-details-page.tsx` with `Help me write` and `Make mine better` actions.
-- Generated-description staleness tracking in `lib/listing-doctor/descriptionStaleness.ts`, surfaced in the details page, Doctor rail, and footer action area.
-- Simulated ML-style prediction layer in `lib/listing-doctor/predictiveInsights.ts`, surfaced in the compact Doctor rail and full report.
+- Generated-description staleness tracking in `lib/listing-doctor/descriptionStaleness.ts`, surfaced in the details page, Coach rail, and footer action area.
+- Simulated ML-style prediction layer in `lib/listing-doctor/predictiveInsights.ts`, surfaced in the compact Coach rail and full report.
 - Four fictional Swiss demo listings in `lib/listing-doctor/demoListings.ts`.
 - Deterministic mock listing generation in `lib/listing-doctor/mockData.ts`.
 - Local catalogue data in `lib/listing-doctor/catalogue.ts`.
@@ -100,7 +100,7 @@ Main components:
 - `components/listing-doctor/identify-page.tsx`: catalogue make/model/production date selection and demo controls.
 - `components/listing-doctor/version-page.tsx`: version cards filtered by production date.
 - `components/listing-doctor/listing-details-page.tsx`: condition, price, equipment, technical data, EV battery data, image, and description editor.
-- `components/listing-doctor/live-doctor-panel.tsx`: sticky compact real-time coaching panel with current-section focus, next action, and evidence chips.
+- `components/listing-doctor/live-doctor-panel.tsx`: sticky compact real-time coaching panel with current-section focus, one recommended action, and evidence chips.
 - `components/listing-doctor/diagnosis-panel.tsx`: reusable report renderer, including the simulated prediction section.
 - `components/listing-doctor/insertion-section.tsx`: collapsible insertion section wrapper.
 - `components/listing-doctor/form-controls.tsx`: field/input/select/textarea wrappers.
@@ -130,7 +130,7 @@ Domain logic:
 
 Demo/mock data:
 
-- `demoListings.ts`: weak BMW, strong Toyota RAV4 Hybrid, risky VW Golf, premium Tesla Model Y.
+- `demoListings.ts`: guided weak BMW, strong Toyota RAV4 Hybrid, risky VW Golf, premium Tesla Model Y.
 - `mockData.ts`: deterministic generator for additional local listing drafts.
 - `pastListings.ts`: 20 market templates with 500 synthetic listings each, for 10,000 total mock historical records.
 
@@ -182,7 +182,7 @@ Equipment scoring is intentionally not "more options is always better." `scoreEq
 
 Description assistance uses `generateListingDescription(listing, mode)` in `lib/listing-doctor/descriptionAssistant.ts`. `scratch` mode writes a fresh buyer-facing description from structured listing fields. `polish` mode rewrites meaningful seller text after removing urgency wording such as "must sell quickly"; it also detects assistant-generated drafts so clicking the rewrite action after a generated draft does not duplicate the opening paragraph. The helper uses successful synthetic comparable listings from `pastListings.ts` for style context and shows product-facing source wording with average leads and days online for matched comparable listings. Missing MFK, service, accident, or warranty proof is returned as UI guidance, not inserted into the published description text.
 
-Generated-description staleness uses `createDescriptionSnapshot(listing, mode, description)` and `getDescriptionStaleness(listing, snapshot)` in `lib/listing-doctor/descriptionStaleness.ts`. When the seller generates copy, the app snapshots source fields that may be mentioned in the description: MFK, service history, accident history, warranty, mileage, price, features/equipment, seller notes, and EV battery data. If those fields change while the generated text remains untouched, the details page, Doctor rail, and footer show a stale-copy warning. The app does not auto-change the textarea; the seller can refresh, review, or continue anyway.
+Generated-description staleness uses `createDescriptionSnapshot(listing, mode, description)` and `getDescriptionStaleness(listing, snapshot)` in `lib/listing-doctor/descriptionStaleness.ts`. When the seller generates copy, the app snapshots source fields that may be mentioned in the description: MFK, service history, accident history, warranty, mileage, price, features/equipment, seller notes, and EV battery data. If those fields change while the generated text remains untouched, the details page, Coach rail, and footer show a stale-copy warning. The app does not auto-change the textarea; the seller can refresh, review, or continue anyway.
 
 Simulated prediction uses `buildPredictiveInsights(listing, input)` in `lib/listing-doctor/predictiveInsights.ts`. It combines existing explainable scores, top fixes, buyer questions, pricing position, photo gaps, and synthetic comparables from `pastListings.ts`. The output includes `mode: "simulated-ml"`, confidence, expected enquiry-lift range, lead probability score, expected first-contact timing, expected days online, likely buyer objections, and performance signals. This is deterministic demo logic and not a trained ML model.
 
@@ -194,7 +194,7 @@ Synthetic past listings now include richer marketplace-style fields: production 
 
 Purpose: diagnose a structured listing payload using the shared report generator.
 
-Validation requires the core structured listing shape, including make, model, version-derived drivetrain/body fields, numeric price/mileage/photo count, enums, `photoChecklist`, and `keyFeatures`. `description` must be present as a string but can be empty so the Doctor can score missing listing copy instead of rejecting an in-progress draft.
+Validation requires the core structured listing shape, including make, model, version-derived drivetrain/body fields, numeric price/mileage/photo count, enums, `photoChecklist`, and `keyFeatures`. `description` must be present as a string but can be empty so Listing Coach can score missing listing copy instead of rejecting an in-progress draft.
 
 Request:
 
@@ -289,11 +289,11 @@ http://127.0.0.1:3020
 
 Demo steps:
 
-1. Load the weak BMW demo or generate a mock draft.
+1. Load the guided BMW demo or create a demo-ready draft.
 2. Show Page 1 catalogue production date selection.
 3. Continue to version selection and show version filtering.
 4. Continue to listing data.
-5. Click the compact `Diagnose` backup action, or edit fields and let live diagnosis refresh.
+5. Click the compact `Refresh` backup action, or edit fields and let live diagnosis refresh.
 6. In the description section, click `Help me write` to generate copy from the structured listing or `Make mine better` to improve existing seller text.
 7. Change MFK, service history, warranty, price, equipment, seller notes, or EV battery data after generating text to show stale-description protection.
 8. Edit MFK, service history, warranty, price, image coverage, or description.
@@ -303,7 +303,7 @@ Demo steps:
 Suggested judging highlight:
 
 - The insertion flow is catalogue-backed.
-- The Doctor follows the seller through the real listing data flow and stays within the visible page height.
+- Listing Coach follows the seller through the real listing data flow and stays within the visible page height.
 - The scoring is transparent and deterministic.
 - The simulated prediction layer demonstrates how future ML could estimate enquiry lift and likely objections while preserving explainable rules.
 - Generated descriptions stay under seller control; field changes trigger review warnings instead of silently overwriting text.
@@ -361,7 +361,7 @@ Near-term:
 - Improve API validation and error detail.
 - Make score explanations more granular.
 - Improve description assistant templates and warning display.
-- Continue refining the compact Doctor rail with browser screenshots across short and tall viewports.
+- Continue refining the compact Coach rail with browser screenshots across short and tall viewports.
 - Improve simulated prediction calibration and confidence messaging.
 - Add more catalogue records.
 - Add more pricing benchmark tests and edge cases.

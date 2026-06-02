@@ -39,16 +39,16 @@ export function DiagnosisPanel({
         <div className="rounded-panel border border-line bg-panel shadow-panel">
           <div className="border-b border-line bg-raised px-4 py-3">
             <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-muted">
-              Listing Doctor
+              Listing Coach
             </p>
             <h2 className="mt-1 text-lg font-extrabold text-ink">
-              Diagnosis waits for your draft.
+              Coach waits for your draft.
             </h2>
           </div>
           <div className="space-y-4 p-4">
             <div className="rounded border border-dashed border-line bg-raised p-4">
               <p className="text-sm leading-6 text-muted">
-                Run a diagnosis to score trust, description quality, photo coverage,
+                Refresh the score to check trust, description quality, photo coverage,
                 searchability, and pricing readiness.
               </p>
             </div>
@@ -82,7 +82,7 @@ export function DiagnosisPanel({
           <div className="flex items-start justify-between gap-3">
             <div>
               <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-muted">
-                Listing Doctor diagnosis
+                Listing Coach report
               </p>
               <h2 className="mt-1 text-lg font-extrabold text-ink">Quality report</h2>
             </div>

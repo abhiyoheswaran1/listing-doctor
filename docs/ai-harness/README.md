@@ -1,12 +1,12 @@
-# Listing Doctor AI Harness
+# Listing Coach AI Harness
 
-This folder is the repo-native harness for letting future coding agents improve Listing Doctor without drifting away from the implemented product.
+This folder is the repo-native harness for letting future coding agents improve Listing Coach without drifting away from the implemented product.
 
 The harness is intentionally local and deterministic. It does not call external AI APIs, does not run a background daemon, and does not claim that the prototype has real ML or real AutoScout24 marketplace data. It gives agents clear roles, guardrails, review criteria, and a local audit command.
 
 ## What The Harness Protects
 
-- Listing Doctor remains a seller-side insertion assistant, not a buyer comparison tool.
+- Listing Coach remains a seller-side insertion assistant, not a buyer comparison tool.
 - The implemented product remains manual draft diagnosis through `POST /api/diagnose-listing`.
 - The live URL diagnosis tab is not reintroduced unless explicitly requested and documented.
 - Synthetic comparable listings are described as synthetic demo data.
@@ -29,7 +29,7 @@ npm run ai:audit
 Create an hourly progress report with:
 
 ```bash
-npm run ai:hourly-report -- --agent "UI/UX Insertion Flow Agent" --goal "Reduce Doctor panel clutter" --improvement "Made current-section guidance shorter and easier to demo"
+npm run ai:hourly-report -- --agent "UI/UX Insertion Flow Agent" --goal "Reduce Coach panel clutter" --improvement "Made current-section guidance shorter and easier to demo"
 ```
 
 Reports are written to `docs/ai-harness/hourly-reports/`.

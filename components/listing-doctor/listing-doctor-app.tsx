@@ -10,7 +10,7 @@ import {
   ClipboardCheck,
   Loader2,
   RefreshCw,
-  Stethoscope,
+  Sparkles,
 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -113,7 +113,7 @@ export function ListingDoctorApp() {
           const details = "details" in payload && payload.details?.length
             ? ` ${payload.details.join(" ")}`
             : "";
-          throw new Error(`${"error" in payload ? payload.error : "Failed to diagnose listing"}.${details}`);
+          throw new Error(`${"error" in payload ? payload.error : "Could not refresh the listing score"}.${details}`);
         }
 
         setManualReport(payload.diagnosis);
@@ -122,7 +122,7 @@ export function ListingDoctorApp() {
         if (signal?.aborted) return;
         setManualReport(null);
         setDiagnosisStatus("error");
-        setDiagnosisError(error instanceof Error ? error.message : "Failed to diagnose listing");
+        setDiagnosisError(error instanceof Error ? error.message : "Could not refresh the listing score");
       }
     },
     [],
@@ -275,9 +275,9 @@ export function ListingDoctorApp() {
             </div>
             <div className="h-8 w-px bg-line" />
             <div className="flex items-center gap-2">
-              <Stethoscope className="size-4 text-ink" aria-hidden="true" />
+              <Sparkles className="size-4 text-ink" aria-hidden="true" />
               <div>
-                <p className="text-sm font-black leading-none text-ink">Listing Doctor</p>
+                <p className="text-sm font-black leading-none text-ink">Listing Coach</p>
                 <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.08em] text-muted">
                   Your listing&apos;s conversion coach
                 </p>
@@ -292,7 +292,7 @@ export function ListingDoctorApp() {
           <div className="border-b border-line bg-raised px-4 py-3 sm:px-5">
             <div className="flex min-w-0 items-center justify-between gap-3">
               <p className="min-w-0 truncate text-[11px] font-bold uppercase tracking-[0.08em] text-muted">
-                Seller insertion flow with real-time Listing Doctor coaching.
+                Seller insertion flow with real-time Listing Coach support.
               </p>
               <div className="flex shrink-0 items-center gap-1.5">
                 <Button
@@ -308,7 +308,7 @@ export function ListingDoctorApp() {
                   ) : (
                     <RefreshCw className="size-3" aria-hidden="true" />
                   )}
-                  Diagnose
+                  Refresh
                 </Button>
                 <Badge
                   tone={activePage === "details" ? "accent" : "neutral"}
@@ -601,14 +601,14 @@ function getHeaderCopy(page: InsertionPage) {
     return "Pick the exact catalogue version before entering listing data. This anchors drivetrain, body type, and comparison logic.";
   }
 
-  return "Your listing's conversion coach checks trust, photos, searchability, and price while you enter the draft.";
+  return "Listing Coach checks trust, photos, searchability, and price while you enter the draft.";
 }
 
 function getFooterDiagnosisText(report: ListingReport | null, status: DiagnosisStatus) {
   if (report) return `Live score ${report.scores.overall}, ${report.readiness.toLowerCase()}`;
-  if (status === "loading") return "Diagnosing listing through API";
-  if (status === "error") return "Diagnosis API returned an error";
-  return "Diagnosis pending";
+  if (status === "loading") return "Refreshing listing score";
+  if (status === "error") return "Score refresh failed";
+  return "Score pending";
 }
 
 function cloneListing(listing: ListingDraft | undefined): ListingDraft {

@@ -4,8 +4,8 @@ import { Providers } from "./providers";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Listing Doctor",
-  description: "An AI-style listing quality assistant for vehicle marketplace sellers.",
+  title: "Listing Coach",
+  description: "A listing quality coach for vehicle marketplace sellers.",
 };
 
 export default function RootLayout({

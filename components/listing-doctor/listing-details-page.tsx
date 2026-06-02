@@ -196,7 +196,7 @@ export function ListingDetailsPage({
               <h2 className="text-xl font-black leading-tight text-ink">
                 {listing.make} {listing.model}
               </h2>
-              <Badge tone="accent">Doctor running</Badge>
+              <Badge tone="accent">Coach active</Badge>
             </div>
             <p className="mt-2 text-sm leading-6 text-muted">
               {listing.version || "Version missing"} · {listing.productionMonth}{" "}
@@ -452,7 +452,7 @@ export function ListingDetailsPage({
             <ImagePlus className="mx-auto size-9 text-muted" aria-hidden="true" />
             <p className="mt-2 text-sm font-bold text-ink">Upload vehicle images</p>
             <p className="mt-1 text-xs leading-5 text-muted">
-              Image tags tell Listing Doctor what proof is available.
+              Image tags tell Listing Coach what proof is available.
             </p>
             <label className="mt-3 inline-flex cursor-pointer items-center justify-center rounded border border-accent bg-accent px-3 py-2 text-xs font-bold text-accent-ink">
               <Upload className="mr-2 size-3.5" aria-hidden="true" />

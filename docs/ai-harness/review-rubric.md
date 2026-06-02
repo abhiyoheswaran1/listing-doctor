@@ -1,4 +1,4 @@
-# Listing Doctor Review Rubric
+# Listing Coach Review Rubric
 
 Use this rubric before accepting overnight agent work. Score each area from 0 to 3.
 
@@ -54,4 +54,3 @@ Use this rubric before accepting overnight agent work. Score each area from 0 to
 ## Acceptance Bar
 
 For hackathon demo readiness, every changed area should score at least 2. Any 0 in product truthfulness, demo reliability, or code maintainability must block the change.
-

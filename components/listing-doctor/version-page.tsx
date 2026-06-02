@@ -154,11 +154,11 @@ export function VersionPage({
           />
           <ReadinessCard
             icon={ShieldCheck}
-            label="Doctor state"
+            label="Coach readiness"
             value={
               selectedVersion
                 ? "Live coaching unlocks on listing data"
-                : "Doctor remains locked until version is selected"
+                : "Select a version to unlock live coaching"
             }
           />
         </div>

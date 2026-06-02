@@ -22,7 +22,7 @@ This plan is for running several focused coding-agent sessions through the night
 
 5. UI/UX Insertion Flow Agent
    - Polish the highest-friction area found during demo QA.
-   - Keep Listing Doctor as a following assistant, not a separate step.
+   - Keep Listing Coach as a following assistant, not a separate step.
 
 6. Documentation Steward Agent
    - Reconcile README and internal reference with actual final code.
@@ -52,10 +52,10 @@ npm run ai:hourly-report -- \
   --improvement "Sellers can now explain why an old high-mileage car loses trust or price points" \
   --validation "npm test, npm run lint, npm run ai:audit, npm run build passed" \
   --risks "Still synthetic; no real market pricing" \
-  --next "Review Doctor panel wording for the new rule"
+  --next "Review Coach panel wording for the new rule"
 ```
 
-The report must say what changed, how Listing Doctor improved, what validation passed, remaining risks, and what the next agent should do.
+The report must say what changed, how Listing Coach improved, what validation passed, remaining risks, and what the next agent should do.
 
 ## Stop conditions
 
@@ -85,6 +85,6 @@ Recommended next agent:
 - Add more tests around scoring edge cases for old/high-mileage vehicles.
 - Improve buyer-objection wording by make/model/fuel type.
 - Improve synthetic market data distributions for dealer/private behavior.
-- Add a small quality-audit pass over the sticky Doctor panel.
+- Add a small quality-audit pass over the sticky Coach panel.
 - Improve the description assistant with cleaner title and paragraph structure.
 - Add a lightweight browser smoke test if the repo standardizes on Playwright.

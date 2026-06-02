@@ -1,6 +1,6 @@
-# Listing Doctor
+# Listing Coach
 
-Listing Doctor is a hackathon MVP for a seller-side vehicle listing quality assistant. It reviews a draft vehicle listing before publication and returns listing quality scoring, trust gaps, photo guidance, pricing feedback, buyer objections, a rewritten description, and a pre-publish checklist.
+Listing Coach is a hackathon MVP for a seller-side vehicle listing quality assistant. It reviews a draft vehicle listing before publication and returns listing quality scoring, trust gaps, photo guidance, pricing feedback, buyer objections, a rewritten description, and a pre-publish checklist.
 
 Tagline: **Your listing's conversion coach.**
 
@@ -9,8 +9,8 @@ Tagline: **Your listing's conversion coach.**
 - Reviews a manual vehicle draft inside an AutoScout24-style insertion flow.
 - Uses catalogue-backed make, model, production month/year, and version selection.
 - Calls the shared rule-based diagnosis engine through `POST /api/diagnose-listing`.
-- Renders a compact Listing Doctor assistant beside the insertion flow with the live score, current section focus, and one current section action.
-- Keeps the Listing Doctor assistant inside the visible browser height; lower-priority details collapse on shorter screens instead of forcing a second scroll.
+- Renders a compact Listing Coach assistant beside the insertion flow with the live score, current section focus, and one recommended action.
+- Keeps the Listing Coach assistant inside the visible browser height; lower-priority details collapse on shorter screens instead of forcing a second scroll.
 - Adds description-assistant actions that can write concise buyer-facing SEO copy from listing data or improve the seller's own text using local successful synthetic comparables.
 - Warns when generated description copy may be stale after important source fields change, with explicit refresh/review/continue actions.
 - Adds a simulated ML-style prediction layer based on local synthetic comparables: confidence, expected enquiry lift, likely buyer objections, first-contact timing, and performance signals.
@@ -56,14 +56,14 @@ This harness does not run external AI, does not run a background daemon, and doe
 ## Demo Flow
 
 1. Open the app.
-2. Load a demo listing, generate mock data, or edit the fields manually.
+2. Load the guided BMW demo, create a demo-ready listing, or edit the fields manually.
 3. Page 1: identify make, model, production year, and production month from the local catalogue.
 4. Page 2: pick the exact version filtered by that production date.
 5. Page 3: edit condition, price, equipment, technical data, EV battery data, images, and description.
 6. In the description section, use **Help me write** for a fresh draft or **Make mine better** to improve seller-written text.
 7. Change a trust field such as MFK after generating text to show the stale-description warning.
-8. Click the compact **Diagnose** backup action or edit fields and watch the API-backed report refresh.
-9. Highlight the Doctor rail: live score, current section focus, and one action for the field group the seller is editing.
+8. Click the compact **Refresh** backup action or edit fields and watch the API-backed report refresh.
+9. Highlight the Coach rail: live score, current section focus, and one action for the field group the seller is editing.
 10. Use **Review report** only when you want to show the deeper score breakdown, simulated predictive insight, trust gaps, photo checklist, pricing feedback, buyer questions, rewritten description, and final checklist.
 
 ## API Endpoint
@@ -122,7 +122,7 @@ curl -X POST http://127.0.0.1:3020/api/diagnose-listing \
 - `app/page.tsx`: app entry point.
 - `app/providers.tsx`: AutoScout24 theme and hosted Make It Sans font provider from `@smg-automotive/components`.
 - `app/api/diagnose-listing/route.ts`: structured listing diagnosis API.
-- `components/listing-doctor/*`: insertion editor, live Doctor rail, and reusable diagnosis report.
+- `components/listing-doctor/*`: insertion editor, live Coach rail, and reusable diagnosis report.
 - `components/ui/*`: lightweight primitives. The local button wrapper uses the official SMG Automotive button while preserving the app's existing API.
 - `lib/listing-doctor/types.ts`: shared listing, report, and API response types.
 - `lib/listing-doctor/diagnosisReadiness.ts`: prevents early API diagnosis before version-derived core vehicle data exists.

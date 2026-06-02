@@ -10,7 +10,7 @@ import {
   FileText,
   ListChecks,
   ShieldCheck,
-  Stethoscope,
+  Sparkles,
   TrendingUp,
   Wrench,
   Zap,
@@ -120,7 +120,7 @@ export function LiveDoctorPanel({
                 {getPreLiveTitle(page, hasVersion)}
               </p>
               <p className="mt-2 text-sm leading-6 text-muted">
-                The Doctor starts once the car has a precise catalogue identity.
+                Listing Coach starts once the car has a precise catalogue identity.
               </p>
             </div>
 
@@ -147,7 +147,7 @@ export function LiveDoctorPanel({
           <div className="p-4">
             <p className="text-xl font-black leading-tight text-ink">Checking the current draft</p>
             <p className="mt-2 text-sm leading-6 text-muted">
-              Keep editing. The Doctor updates after each change.
+              Keep editing. Listing Coach updates after each change.
             </p>
           </div>
         </div>
@@ -182,7 +182,6 @@ function ActiveAssistant({
   const focus = getFocus(activeSection, listing, report);
   const sectionAction = getSectionAction(activeSection, listing, report);
   const readinessTone = getReadinessTone(report);
-  const pointSummary = getPointSummary(report);
 
   return (
     <aside className="self-start xl:sticky xl:top-3">
@@ -191,7 +190,7 @@ function ActiveAssistant({
           <AssistantTopBar status={shortReadiness(report.readiness)} tone={readinessTone} />
 
           <div className="doctor-panel-body flex min-h-0 flex-col gap-3 p-3">
-            <HealthSummary report={report} pointSummary={pointSummary} />
+            <HealthSummary report={report} />
 
             <FocusSection focus={focus} />
 
@@ -211,10 +210,8 @@ function ActiveAssistant({
 
 function HealthSummary({
   report,
-  pointSummary,
 }: {
   report: ListingReport;
-  pointSummary: string;
 }) {
   return (
     <section className="rounded-[4px] border border-line bg-raised p-3">
@@ -239,9 +236,6 @@ function HealthSummary({
         tone={scoreTone(report.scores.overall)}
         className="mt-3 h-1.5"
       />
-      <p className="doctor-microcopy mt-2 text-[11px] font-semibold leading-4 text-muted">
-        {pointSummary}
-      </p>
     </section>
   );
 }
@@ -252,10 +246,10 @@ function AssistantTopBar({ status, tone }: { status: string; tone: Tone }) {
       <div className="flex items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
           <span className="flex size-9 shrink-0 items-center justify-center rounded-[3px] bg-accent text-accent-ink">
-            <Stethoscope className="size-4" aria-hidden="true" />
+            <Sparkles className="size-4" aria-hidden="true" />
           </span>
           <div className="min-w-0">
-            <p className="truncate text-sm font-black leading-none text-ink">Listing Doctor</p>
+            <p className="truncate text-sm font-black leading-none text-ink">Listing Coach</p>
             <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.1em] text-muted">
               Follows your form
             </p>
@@ -370,7 +364,7 @@ function NextAction({ action }: { action: SectionAction }) {
           <AlertTriangle className="mt-0.5 size-5 shrink-0 text-accent-ink" aria-hidden="true" />
           <div className="min-w-0">
             <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-muted">
-              Current section action
+              Recommended action
             </p>
             <p className="mt-1 text-sm font-black leading-5 text-ink">{action.title}</p>
             <p className={getActionDetailClassName()}>{action.detail}</p>
@@ -506,13 +500,6 @@ function getFocus(section: DoctorSection, listing: ListingDraft, report: Listing
   };
 }
 
-function getPointSummary(report: ListingReport) {
-  const earned = report.scoreBreakdown.reduce((sum, item) => sum + item.earned, 0);
-  const possible = report.scoreBreakdown.reduce((sum, item) => sum + item.possible, 0);
-
-  return `${earned}/${possible} pre-publish points, blended with trust, photos, description, search, and market rules.`;
-}
-
 function getSectionAction(
   section: DoctorSection,
   listing: ListingDraft,
@@ -629,7 +616,7 @@ function getSectionAction(
 
   return {
     title: "Complete this step",
-    detail: "Lock the catalogue identity and version before the Doctor can score listing data reliably.",
+    detail: "Lock the catalogue identity and version before live coaching can score the listing data reliably.",
     complete: report.scores.vehicleData ? report.scores.vehicleData >= 80 : false,
   };
 }

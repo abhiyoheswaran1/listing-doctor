@@ -67,7 +67,7 @@ export const emptyListingDraft: ListingDraft = {
 export const demoListings: ListingDraft[] = [
   {
     id: "demo-bmw-320d-weak",
-    name: "Weak BMW 320d Touring",
+    name: "Guided demo: BMW 320d needs trust proof",
     make: "BMW",
     model: "320d Touring",
     version: "xDrive Steptronic",

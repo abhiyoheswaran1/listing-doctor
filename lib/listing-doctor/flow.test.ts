@@ -44,7 +44,7 @@ describe("insertion flow state", () => {
     expect(versionState.footerStatus).toBe("Version selected, continue to listing data");
   });
 
-  it("only marks the listing data page complete while the seller is on the live Doctor page", () => {
+  it("only marks the listing data page complete while the seller is on the live Coach page", () => {
     const bmw = demoListings[0];
     const identifyState = getInsertionFlowState({
       listing: bmw,

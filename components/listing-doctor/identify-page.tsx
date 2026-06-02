@@ -148,14 +148,14 @@ export function IdentifyPage({
                   Listing draft
                 </p>
                 <h2 className="mt-1 text-lg font-black text-ink">
-                  Start from a realistic draft or generate a full sample listing
+                  Start from the guided demo or create a full sample listing
                 </h2>
               </div>
-              <Badge tone="neutral">Sample data</Badge>
+              <Badge tone="neutral">Demo-safe</Badge>
             </div>
 
             <div className="mt-4 grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto]">
-              <Field label="Saved draft">
+              <Field label="Demo draft">
                 <select
                   value={selectedDemoId}
                   onChange={(event) => onSelectedDemoChange(event.target.value)}
@@ -171,7 +171,7 @@ export function IdentifyPage({
               <div className="flex items-end gap-2">
                 <Button type="button" onClick={onLoadDemo}>
                   <FileCheck2 className="size-3.5" aria-hidden="true" />
-                  Load sample
+                  Load guided demo
                 </Button>
                 <Button type="button" variant="ghost" onClick={onClear} aria-label="Clear">
                   <Trash2 className="size-4" aria-hidden="true" />
@@ -183,11 +183,11 @@ export function IdentifyPage({
 
           <div className="border-t border-line bg-raised px-4 py-4 md:border-l md:border-t-0">
             <TextInput
-              label="Scenario seed"
+              label="Scenario"
               value={mockSeed}
               onChange={(event) => onMockSeedChange(event.target.value)}
               placeholder="zurich-demo-1"
-              hint="Creates a full Swiss draft with specs, equipment, images, and seller notes."
+              hint="Creates a complete Swiss draft with specs, equipment, images, and seller notes."
             />
             <Button
               type="button"
@@ -195,7 +195,7 @@ export function IdentifyPage({
               onClick={() => onGenerateMock(generateMockListing(mockSeed || "live-demo"))}
             >
               <Sparkles className="size-4" aria-hidden="true" />
-              Generate sample listing
+              Create demo-ready listing
             </Button>
           </div>
         </div>
