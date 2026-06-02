@@ -1,0 +1,100 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-base: 0.93 0.006 88;
+  --color-panel: 0.992 0.004 92;
+  --color-raised: 0.965 0.006 90;
+  --color-line: 0.77 0.009 84;
+  --color-ink: 0.18 0.014 74;
+  --color-muted: 0.43 0.014 77;
+  --color-accent: 0.89 0.2 94;
+  --color-accent-ink: 0.205 0.03 78;
+  --color-success: 0.55 0.13 151;
+  --color-warning: 0.74 0.145 76;
+  --color-danger: 0.54 0.17 30;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background: oklch(var(--color-base));
+  color: oklch(var(--color-ink));
+  font-family: Arial, Helvetica, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  text-rendering: geometricPrecision;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+::selection {
+  background: oklch(var(--color-accent) / 0.55);
+}
+
+@layer base {
+  label {
+    @apply text-[11px] font-bold uppercase tracking-[0.035em] text-muted;
+  }
+
+  input:not([type="checkbox"]):not([type="radio"]),
+  select,
+  textarea {
+    @apply w-full rounded-[3px] border border-line bg-panel px-3 py-2.5 text-sm font-normal text-ink outline-none transition placeholder:text-muted/60 hover:border-muted focus:border-accent focus:ring-2 focus:ring-accent/30 disabled:bg-raised disabled:text-muted;
+  }
+
+  textarea {
+    @apply min-h-28 resize-y leading-6;
+  }
+
+  input[type="checkbox"] {
+    @apply rounded border-line accent-[oklch(var(--color-accent))];
+  }
+}
+
+@layer components {
+  .doctor-viewport-panel {
+    max-height: min(720px, calc(100svh - 168px));
+  }
+
+  @media (max-height: 820px) {
+    .doctor-panel-body {
+      gap: 0.625rem;
+      padding: 0.75rem;
+    }
+
+    .doctor-microcopy {
+      display: none;
+    }
+  }
+
+  @media (max-height: 740px) {
+    .doctor-secondary {
+      display: none;
+    }
+
+    .doctor-panel-body {
+      gap: 0.5rem;
+    }
+  }
+
+  @media (max-height: 660px) {
+    .doctor-tertiary,
+    .doctor-focus-detail,
+    .doctor-priority-detail,
+    .doctor-panel-header-subtitle {
+      display: none;
+    }
+  }
+}
