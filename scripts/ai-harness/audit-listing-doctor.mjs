@@ -24,10 +24,12 @@ function includes(path, text) {
 
 const requiredFiles = [
   "app/api/diagnose-listing/route.ts",
+  "app/api/assist-description/route.ts",
   "components/listing-doctor/listing-doctor-app.tsx",
   "components/listing-doctor/live-doctor-panel.tsx",
   "components/listing-doctor/diagnosis-panel.tsx",
   "lib/listing-doctor/analyze.ts",
+  "lib/listing-doctor/assistDescription.ts",
   "lib/listing-doctor/generateReport.ts",
   "lib/listing-doctor/descriptionAssistant.ts",
   "lib/listing-doctor/descriptionStaleness.ts",
@@ -61,6 +63,10 @@ check(
   fileExists("app/api/diagnose-listing/route.ts"),
 );
 check(
+  "description assistance API route exists",
+  fileExists("app/api/assist-description/route.ts"),
+);
+check(
   "URL diagnosis route is not present",
   !fileExists("app/api/diagnose-url/route.ts"),
   "URL diagnosis was intentionally removed from the current product flow.",
@@ -88,6 +94,11 @@ const descriptionAssistant = read("lib/listing-doctor/descriptionAssistant.ts");
 check("description assistant uses comparable context", descriptionAssistant.includes("successful"));
 check("description assistant avoids urgency language", /must sell quickly|urgent/i.test(descriptionAssistant));
 
+const assistDescription = read("lib/listing-doctor/assistDescription.ts");
+check("OpenAI description assistance is optional", assistDescription.includes("OPENAI_API_KEY"));
+check("OpenAI description assistance has deterministic fallback", assistDescription.includes("buildDeterministicResponse"));
+check("OpenAI output can be sanitized", assistDescription.includes("openai-sanitized"));
+
 const docs = [
   read("README.md"),
   read("docs/hackathon-internal-reference.md"),
@@ -100,6 +111,8 @@ check("docs identify synthetic data", /synthetic/i.test(docs));
 check("docs identify simulated prediction", /simulated/i.test(docs));
 check("docs warn not real ML", /not (a )?(trained )?ML|not real ML/i.test(docs));
 check("docs mention 10,000 synthetic listings", /10,000|10000/.test(docs));
+check("docs identify optional OpenAI description assistance", /OpenAI is optional|optional OpenAI/i.test(docs));
+check("docs mention unsupported claim checks", /unsupported-claim|unsupported claims|checks claims/i.test(docs));
 check("docs include AI harness", includes("README.md", "AI Harness") || includes("docs/hackathon-internal-reference.md", "AI harness"));
 check("overnight plan requires hourly report", includes("docs/ai-harness/overnight-plan.md", "hourly report"));
 

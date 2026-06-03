@@ -4,8 +4,10 @@ import { useState } from "react";
 import {
   AlertTriangle,
   Camera,
+  ChevronDown,
   FileText,
   ImagePlus,
+  Loader2,
   RefreshCw,
   ShieldCheck,
   Sparkles,
@@ -21,8 +23,8 @@ import {
 } from "@/lib/listing-doctor/equipmentCatalog";
 import {
   type DescriptionAssistantMode,
+  type DescriptionLanguage,
   type DescriptionAssistantResult,
-  generateListingDescription,
 } from "@/lib/listing-doctor/descriptionAssistant";
 import type { DescriptionStaleness } from "@/lib/listing-doctor/descriptionStaleness";
 import {
@@ -41,6 +43,7 @@ import { estimateOriginalNewPrice } from "@/lib/listing-doctor/pricing";
 import {
   photoChecklistItems,
   type AccidentHistoryStatus,
+  type ApiErrorResponse,
   type BatteryData,
   type ImageCoverageKey,
   type ListingDraft,
@@ -56,6 +59,10 @@ import { cn } from "@/lib/utils";
 
 import { SelectInput, TextAreaInput, TextInput } from "./form-controls";
 import { InsertionSection } from "./insertion-section";
+import {
+  descriptionLanguageChevronClassName,
+  descriptionLanguageSelectClassName,
+} from "./description-assistant-ui";
 
 const monthOptions = [
   "January",
@@ -88,6 +95,12 @@ const warrantyStatuses: WarrantyStatus[] = [
   "none",
   "unknown",
 ];
+const descriptionLanguages: Array<{ value: DescriptionLanguage; label: string }> = [
+  { value: "en", label: "English" },
+  { value: "de", label: "Deutsch" },
+  { value: "fr", label: "Français" },
+  { value: "it", label: "Italiano" },
+];
 
 export function ListingDetailsPage({
   listing,
@@ -99,7 +112,11 @@ export function ListingDetailsPage({
 }: {
   listing: ListingDraft;
   onListingChange: (listing: ListingDraft) => void;
-  onDescriptionGenerated: (mode: DescriptionAssistantMode, description: string) => void;
+  onDescriptionGenerated: (
+    mode: DescriptionAssistantMode,
+    description: string,
+    language?: DescriptionLanguage,
+  ) => void;
   onDescriptionManuallyEdited: () => void;
   descriptionStaleness: DescriptionStaleness | null;
   onRefreshGeneratedDescription: () => void;
@@ -108,6 +125,10 @@ export function ListingDetailsPage({
   const [optionalQuery, setOptionalQuery] = useState("");
   const [descriptionAssistantResult, setDescriptionAssistantResult] =
     useState<DescriptionAssistantResult | null>(null);
+  const [descriptionLanguage, setDescriptionLanguage] = useState<DescriptionLanguage>("en");
+  const [descriptionAssistantStatus, setDescriptionAssistantStatus] =
+    useState<"idle" | "loading" | "error">("idle");
+  const [descriptionAssistantError, setDescriptionAssistantError] = useState<string | null>(null);
 
   const update = <K extends keyof ListingDraft>(key: K, value: ListingDraft[K]) => {
     onListingChange({ ...listing, [key]: value });
@@ -169,14 +190,36 @@ export function ListingDetailsPage({
     onListingChange(addUploadedImages(listing, nextImages));
   };
 
-  const applyDescriptionAssistant = (mode: DescriptionAssistantMode) => {
-    const result = generateListingDescription(listing, mode);
-    onListingChange({
-      ...listing,
-      description: result.description,
-    });
-    setDescriptionAssistantResult(result);
-    onDescriptionGenerated(mode, result.description);
+  const applyDescriptionAssistant = async (mode: DescriptionAssistantMode) => {
+    setDescriptionAssistantStatus("loading");
+    setDescriptionAssistantError(null);
+
+    try {
+      const response = await fetch("/api/assist-description", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ listing, mode, language: descriptionLanguage }),
+      });
+      const payload = (await response.json()) as DescriptionAssistantResult | ApiErrorResponse;
+
+      if (!response.ok || "error" in payload) {
+        const details = "details" in payload && payload.details?.length
+          ? ` ${payload.details.join(" ")}`
+          : "";
+        throw new Error(`${"error" in payload ? payload.error : "Could not assist description"}.${details}`);
+      }
+
+      onListingChange({
+        ...listing,
+        description: payload.description,
+      });
+      setDescriptionAssistantResult(payload);
+      onDescriptionGenerated(mode, payload.description, descriptionLanguage);
+      setDescriptionAssistantStatus("idle");
+    } catch (error) {
+      setDescriptionAssistantStatus("error");
+      setDescriptionAssistantError(error instanceof Error ? error.message : "Could not assist description");
+    }
   };
 
   const imageCount = getUploadedImageCount(listing);
@@ -577,32 +620,69 @@ export function ListingDetailsPage({
               <div>
                 <p className="text-xs font-black text-ink">Description assistant</p>
                 <p className="mt-1 text-xs leading-5 text-muted">
-                  Creates buyer-facing SEO copy from this listing and successful comparable listings.
+                  Creates buyer-facing SEO copy from verified listing facts and comparable patterns.
                 </p>
               </div>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap items-center justify-end gap-2">
+                <div className="relative shrink-0">
+                  <select
+                    value={descriptionLanguage}
+                    onChange={(event) => setDescriptionLanguage(event.target.value as DescriptionLanguage)}
+                    className={descriptionLanguageSelectClassName}
+                    aria-label="Description language"
+                  >
+                    {descriptionLanguages.map((language) => (
+                      <option key={language.value} value={language.value}>
+                        {language.label}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className={descriptionLanguageChevronClassName} aria-hidden="true" />
+                </div>
                 <Button
                   type="button"
                   size="sm"
-                  onClick={() => applyDescriptionAssistant("scratch")}
+                  onClick={() => void applyDescriptionAssistant("scratch")}
+                  disabled={descriptionAssistantStatus === "loading"}
                 >
-                  <Sparkles className="size-3.5" aria-hidden="true" />
+                  {descriptionAssistantStatus === "loading" ? (
+                    <Loader2 className="size-3.5 animate-spin" aria-hidden="true" />
+                  ) : (
+                    <Sparkles className="size-3.5" aria-hidden="true" />
+                  )}
                   Help me write
                 </Button>
                 <Button
                   type="button"
                   size="sm"
                   variant="secondary"
-                  onClick={() => applyDescriptionAssistant("polish")}
-                  disabled={!listing.description.trim()}
+                  onClick={() => void applyDescriptionAssistant("polish")}
+                  disabled={!listing.description.trim() || descriptionAssistantStatus === "loading"}
                 >
                   <FileText className="size-3.5" aria-hidden="true" />
                   Make mine better
                 </Button>
               </div>
             </div>
+            {descriptionAssistantError ? (
+              <p className="mt-3 rounded-[3px] border border-danger/30 bg-danger/10 px-2 py-1.5 text-[11px] font-bold leading-4 text-ink">
+                {descriptionAssistantError}
+              </p>
+            ) : null}
             {descriptionAssistantResult ? (
               <div className="mt-3 space-y-2 border-t border-line pt-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge tone={descriptionAssistantResult.provider === "openai" ? "success" : descriptionAssistantResult.provider === "openai-sanitized" ? "warning" : "neutral"}>
+                    {descriptionAssistantResult.provider === "openai"
+                      ? "OpenAI assisted"
+                      : descriptionAssistantResult.provider === "openai-sanitized"
+                        ? "Verified fallback"
+                        : "Rule fallback"}
+                  </Badge>
+                  <p className="text-[11px] font-semibold leading-4 text-muted">
+                    {descriptionAssistantResult.factsUsed?.length ?? 0} facts checked
+                  </p>
+                </div>
                 <p className="text-[11px] font-semibold leading-4 text-muted">
                   {descriptionAssistantResult.sourceSummary}
                 </p>
@@ -622,6 +702,18 @@ export function ListingDetailsPage({
                     Strong trust facts are available for the generated description.
                   </p>
                 )}
+                {descriptionAssistantResult.claimsNotUsed?.length ? (
+                  <div className="flex flex-wrap gap-1.5">
+                    {descriptionAssistantResult.claimsNotUsed.slice(0, 3).map((claim) => (
+                      <span
+                        key={claim}
+                        className="rounded-[3px] border border-danger/30 bg-danger/10 px-2 py-1 text-[11px] font-bold leading-4 text-ink"
+                      >
+                        {claim}
+                      </span>
+                    ))}
+                  </div>
+                ) : null}
               </div>
             ) : null}
           </div>

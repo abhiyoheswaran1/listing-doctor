@@ -35,6 +35,52 @@ describe("description assistant", () => {
     expect(result.description).not.toContain("key information buyers search");
   });
 
+  test("does not publish uncertain seller notes as buyer-facing facts", () => {
+    const listing = {
+      ...demoListings.find((item) => item.id === "demo-bmw-320d-weak")!,
+      description: "",
+    };
+    const result = generateListingDescription(listing, "scratch");
+
+    expect(result.description).not.toContain("Additional seller information");
+    expect(result.description).not.toContain("winter wheels may be available");
+    expect(result.writingWarnings).toContain("Confirm seller notes before adding them to the public description.");
+  });
+
+  test("includes confirmed seller notes with a factual label", () => {
+    const listing = {
+      ...demoListings.find((item) => item.id === "demo-toyota-rav4-strong")!,
+      sellerNotes: "Winter wheels included. Two keys available.",
+      description: "",
+    };
+    const result = generateListingDescription(listing, "scratch");
+
+    expect(result.description).toContain("Seller note: Winter wheels included. Two keys available.");
+    expect(result.writingWarnings).not.toContain("Confirm seller notes before adding them to the public description.");
+  });
+
+  test("varies description structure by vehicle segment instead of reusing one template", () => {
+    const diesel = generateListingDescription(
+      {
+        ...demoListings.find((item) => item.id === "demo-bmw-320d-weak")!,
+        description: "",
+      },
+      "scratch",
+    );
+    const ev = generateListingDescription(
+      {
+        ...demoListings.find((item) => item.id === "demo-tesla-model-y-premium")!,
+        description: "",
+      },
+      "scratch",
+    );
+
+    expect(diesel.description).toContain("for sale in Switzerland");
+    expect(ev.description).toContain("listed in Switzerland");
+    expect(diesel.description).not.toContain("Battery and charging:");
+    expect(ev.description).toContain("Battery and charging:");
+  });
+
   test("polishing an assistant-generated draft does not duplicate the generated opening", () => {
     const listing = {
       ...demoListings.find((item) => item.id === "demo-bmw-320d-weak")!,

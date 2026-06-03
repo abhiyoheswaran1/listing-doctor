@@ -54,6 +54,12 @@ type SectionAction = {
   complete?: boolean;
 };
 
+type SetupProgressStep = {
+  done: boolean;
+  label: string;
+  value: string;
+};
+
 export function LiveDoctorPanel({
   listing,
   report,
@@ -70,6 +76,7 @@ export function LiveDoctorPanel({
   descriptionStaleness?: DescriptionStaleness | null;
 }) {
   const hasVersion = Boolean(listing.make && listing.model && listing.version);
+  const setupProgress = getSetupProgress({ listing, page, enabled });
   const [activeSection, setActiveSection] = useState<DoctorSection>("identify");
 
   useEffect(() => {
@@ -125,13 +132,14 @@ export function LiveDoctorPanel({
             </div>
 
             <div className="space-y-2">
-              <SetupStep
-                done={Boolean(listing.make && listing.model && listing.productionMonth && listing.productionYear)}
-                label="Catalogue identity"
-                value={listing.make && listing.model ? `${listing.make} ${listing.model}` : "Select make and model"}
-              />
-              <SetupStep done={hasVersion} label="Exact version" value={listing.version || "Pick a version"} />
-              <SetupStep done={enabled && hasVersion} label="Live coaching" value="Starts on listing data" />
+              {setupProgress.map((step) => (
+                <SetupStep
+                  key={step.label}
+                  done={step.done}
+                  label={step.label}
+                  value={step.value}
+                />
+              ))}
             </div>
           </div>
         </div>
@@ -164,6 +172,41 @@ export function LiveDoctorPanel({
       descriptionStaleness={descriptionStaleness}
     />
   );
+}
+
+export function getSetupProgress({
+  listing,
+  page,
+  enabled,
+}: {
+  listing: ListingDraft;
+  page: InsertionPage;
+  enabled: boolean;
+}): SetupProgressStep[] {
+  const hasCatalogueIdentity = Boolean(
+    listing.make && listing.model && listing.productionMonth && listing.productionYear,
+  );
+  const hasReachedVersionPage = page === "version" || page === "details";
+  const hasVersion = Boolean(listing.make && listing.model && listing.version);
+  const versionConfirmed = hasReachedVersionPage && hasVersion;
+
+  return [
+    {
+      done: hasCatalogueIdentity,
+      label: "Catalogue identity",
+      value: listing.make && listing.model ? `${listing.make} ${listing.model}` : "Select make and model",
+    },
+    {
+      done: versionConfirmed,
+      label: "Exact version",
+      value: versionConfirmed ? listing.version || "Pick a version" : "Pick a version",
+    },
+    {
+      done: page === "details" && enabled && hasVersion,
+      label: "Live coaching",
+      value: "Starts on listing data",
+    },
+  ];
 }
 
 function ActiveAssistant({

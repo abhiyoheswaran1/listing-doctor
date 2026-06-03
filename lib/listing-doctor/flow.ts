@@ -49,16 +49,19 @@ export function getInsertionFlowState({
     listing.productionYear ?? 0,
   );
   const versionSelected = availableVersions.some((version) => version.name === listing.version);
+  const activePageIndex = insertionPages.findIndex((page) => page.id === activePage);
+  const hasReachedPage = (page: InsertionPage) =>
+    activePageIndex >= insertionPages.findIndex((item) => item.id === page);
 
   const canOpenPage = (page: InsertionPage) => {
     if (page === "identify") return true;
     if (page === "version") return validProductionDate;
-    return validProductionDate && versionSelected;
+    return validProductionDate && versionSelected && hasReachedPage("version");
   };
 
   const isPageComplete = (page: InsertionPage) => {
     if (page === "identify") return validProductionDate;
-    if (page === "version") return versionSelected;
+    if (page === "version") return hasReachedPage("version") && versionSelected;
     return activePage === "details" && completion === 100;
   };
 

@@ -2,7 +2,10 @@
 
 import type { ListingDraft } from "@/lib/listing-doctor/types";
 import type { InsertionPage } from "@/lib/listing-doctor/flow";
-import type { DescriptionAssistantMode } from "@/lib/listing-doctor/descriptionAssistant";
+import type {
+  DescriptionAssistantMode,
+  DescriptionLanguage,
+} from "@/lib/listing-doctor/descriptionAssistant";
 import type { DescriptionStaleness } from "@/lib/listing-doctor/descriptionStaleness";
 
 import { IdentifyPage } from "./identify-page";
@@ -35,7 +38,11 @@ export function ListingEditor({
   onLoadDemo: () => void;
   onGenerateMock: (listing: ListingDraft) => void;
   onClear: () => void;
-  onDescriptionGenerated: (mode: DescriptionAssistantMode, description: string) => void;
+  onDescriptionGenerated: (
+    mode: DescriptionAssistantMode,
+    description: string,
+    language?: DescriptionLanguage,
+  ) => void;
   onDescriptionManuallyEdited: () => void;
   descriptionStaleness: DescriptionStaleness | null;
   onRefreshGeneratedDescription: () => void;

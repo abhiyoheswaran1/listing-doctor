@@ -41,18 +41,24 @@ The app is not a buyer-side comparison assistant, not a car recommendation produ
   - The UI calls `POST /api/diagnose-listing` only after the seller reaches listing-data entry with a selected version and core vehicle data.
   - The compact `Refresh` backup action also calls `POST /api/diagnose-listing`.
   - The returned `ListingReport` drives the compact live Coach panel and the optional full diagnosis report.
+- OpenAI-backed description assistance:
+  - The description buttons call `POST /api/assist-description`.
+  - The route validates the same structured listing payload, checks unsupported seller claims, and uses OpenAI only when `OPENAI_API_KEY` is configured.
+  - If OpenAI is unavailable or returns unsupported claims, the route returns deterministic fallback copy and marks the provider as `deterministic` or `openai-sanitized`.
 - Structured diagnosis API at `app/api/diagnose-listing/route.ts`.
+- Description assistance API at `app/api/assist-description/route.ts`.
 - Shared diagnosis engine in `lib/listing-doctor/analyze.ts`.
 - Shared report generation in `lib/listing-doctor/generateReport.ts`.
 - Shared report UI in `components/listing-doctor/diagnosis-panel.tsx`.
 - Sticky section-aware live Coach panel in `components/listing-doctor/live-doctor-panel.tsx`. It focuses only on the active form section, is bounded to the visible browser height, keeps one recommended action readable, and hides lower-priority details on shorter screens instead of creating a second scroll area.
-- Inline description assistant in `components/listing-doctor/listing-details-page.tsx` with `Help me write` and `Make mine better` actions.
+- Inline description assistant in `components/listing-doctor/listing-details-page.tsx` with language selection, `Help me write`, and `Make mine better` actions.
 - Generated-description staleness tracking in `lib/listing-doctor/descriptionStaleness.ts`, surfaced in the details page, Coach rail, and footer action area.
 - Simulated ML-style prediction layer in `lib/listing-doctor/predictiveInsights.ts`, surfaced in the compact Coach rail and full report.
 - Four fictional Swiss demo listings in `lib/listing-doctor/demoListings.ts`.
 - Deterministic mock listing generation in `lib/listing-doctor/mockData.ts`.
 - Local catalogue data in `lib/listing-doctor/catalogue.ts`.
 - 10,000 lightweight synthetic past listings in `lib/listing-doctor/pastListings.ts`, across 20 vehicle templates and including production/registration dates, region, equipment, seasonality, listing-age buckets, seller response behavior, dealer certification, photo quality proxies, description quality, views, leads, contact rate, price reductions, and success flags.
+- Server-side OpenAI/fallback description orchestration in `lib/listing-doctor/assistDescription.ts`.
 - Deterministic concise description drafting and rewriting in `lib/listing-doctor/descriptionAssistant.ts`.
 - Local image upload simulation and image-tag/checklist sync in `lib/listing-doctor/imageUploads.ts`.
 - Local AI harness documentation in `docs/ai-harness/*` for scoped overnight agent work and review guardrails.
@@ -113,7 +119,8 @@ Domain logic:
 - `lib/listing-doctor/apiPayload.ts`: lightweight structured listing API payload validation.
 - `lib/listing-doctor/diagnosisReadiness.ts`: local readiness rule that prevents early Page 1/Page 2 API validation errors before a selected version and drivetrain/body data exist.
 - `lib/listing-doctor/analyze.ts`: core rule-based diagnosis/scoring.
-- `lib/listing-doctor/generateReport.ts`: improved title, rewritten description, and checklist generation.
+- `lib/listing-doctor/generateReport.ts`: report wrapper that adds the improved title and final checklist; rewritten buyer-facing copy is delegated to `descriptionAssistant.ts`.
+- `lib/listing-doctor/assistDescription.ts`: optional OpenAI-backed description assistance, unsupported-claim detection, fallback selection, language handling, and API response assembly.
 - `lib/listing-doctor/flow.ts`: insertion flow unlock/step state.
 - `lib/listing-doctor/catalogue.ts`: local make/model/production/version catalogue.
 - `lib/listing-doctor/pricing.ts`: mocked original-new-price and benchmark calculations.
@@ -136,7 +143,7 @@ Demo/mock data:
 
 ## 4. Core Logic Explanation
 
-The single diagnosis source of truth is `analyzeListing(listing)` in `lib/listing-doctor/analyze.ts`. `generateReport(listing)` in `lib/listing-doctor/generateReport.ts` wraps that analysis and adds generated report copy: improved title, rewritten description, and final checklist.
+The single diagnosis source of truth is `analyzeListing(listing)` in `lib/listing-doctor/analyze.ts`. `generateReport(listing)` in `lib/listing-doctor/generateReport.ts` wraps that analysis and adds generated report copy. The improved title and final checklist live in `generateReport.ts`; the rewritten buyer-facing description uses `generateListingDescription(listing, "scratch")` from `descriptionAssistant.ts` so report rewrites follow the same factuality and seller-note rules as the inline writing assistant.
 
 Main score fields:
 
@@ -180,7 +187,7 @@ Price feedback uses `lib/listing-doctor/pricing.ts` and local synthetic comparab
 
 Equipment scoring is intentionally not "more options is always better." `scoreEquipment()` in `lib/listing-doctor/analyze.ts` gives most points for confirming catalogue standard equipment. Optional equipment is neutral when none is selected and only adds value when the seller selects equipment the car actually has. This matches the insertion model: the platform can provide standard equipment from catalogue/version context, while sellers should only confirm real optional equipment.
 
-Description assistance uses `generateListingDescription(listing, mode)` in `lib/listing-doctor/descriptionAssistant.ts`. `scratch` mode writes a fresh buyer-facing description from structured listing fields. `polish` mode rewrites meaningful seller text after removing urgency wording such as "must sell quickly"; it also detects assistant-generated drafts so clicking the rewrite action after a generated draft does not duplicate the opening paragraph. The helper uses successful synthetic comparable listings from `pastListings.ts` for style context and shows product-facing source wording with average leads and days online for matched comparable listings. Missing MFK, service, accident, or warranty proof is returned as UI guidance, not inserted into the published description text.
+Description assistance has two layers. `generateListingDescription(listing, mode)` in `lib/listing-doctor/descriptionAssistant.ts` is the deterministic fallback. `scratch` mode writes a fresh buyer-facing description from structured listing fields. `polish` mode rewrites meaningful seller text after removing urgency wording such as "must sell quickly"; it also detects assistant-generated drafts so clicking the rewrite action after a generated draft does not duplicate the opening paragraph. `assistListingDescription()` in `lib/listing-doctor/assistDescription.ts` wraps that helper with optional OpenAI generation. It sends only structured listing facts and seller text to check, asks for JSON output, detects unsupported claims such as accident-free/full-service/warranty claims that conflict with selected fields, and falls back to deterministic copy if OpenAI is missing, fails, or returns unsupported claims. Missing MFK, service, accident, or warranty proof is returned as UI guidance, not inserted into the published description text. Seller notes are only included when they are written as confirmed facts; uncertain notes using language such as "may", "might", "possibly", or "to be confirmed" are excluded from public copy and returned as a writing warning instead. Generated copy also varies deterministic phrasing by vehicle segment, such as EV battery/charging copy, high-mileage wording, hybrid equipment phrasing, and strong-documentation openings.
 
 Generated-description staleness uses `createDescriptionSnapshot(listing, mode, description)` and `getDescriptionStaleness(listing, snapshot)` in `lib/listing-doctor/descriptionStaleness.ts`. When the seller generates copy, the app snapshots source fields that may be mentioned in the description: MFK, service history, accident history, warranty, mileage, price, features/equipment, seller notes, and EV battery data. If those fields change while the generated text remains untouched, the details page, Coach rail, and footer show a stale-copy warning. The app does not auto-change the textarea; the seller can refresh, review, or continue anyway.
 
@@ -272,6 +279,41 @@ curl -X POST http://127.0.0.1:3020/api/diagnose-listing \
   }'
 ```
 
+### `POST /api/assist-description`
+
+Purpose: write or polish buyer-facing listing copy using verified listing facts. The route uses OpenAI when `OPENAI_API_KEY` is configured, and returns deterministic fallback copy when OpenAI is missing, unavailable, or produces unsupported claims.
+
+Request:
+
+```json
+{
+  "mode": "scratch",
+  "language": "en",
+  "listing": {
+    "...": "ListingDraft fields"
+  }
+}
+```
+
+Supported modes are `scratch` and `polish`. Supported languages are `en`, `de`, `fr`, and `it`.
+
+Success response:
+
+```json
+{
+  "provider": "openai",
+  "language": "en",
+  "title": "2016 BMW 320d Touring xDrive Steptronic",
+  "description": "Buyer-facing generated text",
+  "factsUsed": ["2016 BMW 320d Touring xDrive Steptronic"],
+  "writingWarnings": [],
+  "claimsNotUsed": [],
+  "buyerObjections": []
+}
+```
+
+`provider` can be `openai`, `deterministic`, or `openai-sanitized`. `openai-sanitized` means OpenAI returned unsupported claims and the endpoint used verified deterministic copy instead.
+
 ## 6. Demo Guide
 
 Run locally:
@@ -294,7 +336,7 @@ Demo steps:
 3. Continue to version selection and show version filtering.
 4. Continue to listing data.
 5. Click the compact `Refresh` backup action, or edit fields and let live diagnosis refresh.
-6. In the description section, click `Help me write` to generate copy from the structured listing or `Make mine better` to improve existing seller text.
+6. In the description section, choose a language and click `Help me write` to generate copy from the structured listing or `Make mine better` to improve existing seller text.
 7. Change MFK, service history, warranty, price, equipment, seller notes, or EV battery data after generating text to show stale-description protection.
 8. Edit MFK, service history, warranty, price, image coverage, or description.
 9. Highlight that the report comes from `POST /api/diagnose-listing`.
@@ -306,6 +348,7 @@ Suggested judging highlight:
 - Listing Coach follows the seller through the real listing data flow and stays within the visible page height.
 - The scoring is transparent and deterministic.
 - The simulated prediction layer demonstrates how future ML could estimate enquiry lift and likely objections while preserving explainable rules.
+- OpenAI can improve description phrasing, but the product checks claims against selected MFK, service, accident, and warranty fields before using generated copy.
 - Generated descriptions stay under seller control; field changes trigger review warnings instead of silently overwriting text.
 - The pricing benchmark has 10,000 local synthetic historical records, not real market data.
 - Equipment scoring rewards catalogue confirmation and optional-equipment accuracy; it does not reward selecting extras the vehicle does not have.
@@ -339,8 +382,8 @@ Potential business/product impact:
 - No authentication.
 - No persistence.
 - No database.
-- No external AI, OCR, or LLM call.
-- Description assistance is deterministic and uses local synthetic comparables, not real seller history or real successful user listing data.
+- OpenAI is optional and limited to description assistance through `POST /api/assist-description`; scoring and diagnosis do not depend on it.
+- Description assistance has deterministic fallback, unsupported-claim checks, and no real seller history or real buyer behavior data.
 - Simulated prediction is deterministic and uses synthetic comparable listings, not a trained ML model.
 - No official AutoScout24 backend, listing draft, seller cockpit, or marketplace-system integration. The app only uses the public SMG Automotive component package for UI theming/components.
 - No live URL fetch or scraping.
@@ -384,8 +427,9 @@ Long-term:
 ## 10. Technical Notes For Contributors
 
 - Add or modify scoring rules in `lib/listing-doctor/analyze.ts`.
-- Modify generated titles, descriptions, and checklists in `lib/listing-doctor/generateReport.ts`.
-- Modify the inline description writing helper in `lib/listing-doctor/descriptionAssistant.ts`.
+- Modify generated titles and checklists in `lib/listing-doctor/generateReport.ts`.
+- Modify deterministic buyer-facing generated description templates in `lib/listing-doctor/descriptionAssistant.ts`.
+- Modify OpenAI orchestration, unsupported-claim checks, language handling, and fallback behavior in `lib/listing-doctor/assistDescription.ts`.
 - Modify generated-description stale-copy detection in `lib/listing-doctor/descriptionStaleness.ts`.
 - Modify simulated prediction logic in `lib/listing-doctor/predictiveInsights.ts`.
 - Add curated demo listings in `lib/listing-doctor/demoListings.ts`.

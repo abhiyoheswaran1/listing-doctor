@@ -1,4 +1,4 @@
-import type { DescriptionAssistantMode } from "./descriptionAssistant";
+import type { DescriptionAssistantMode, DescriptionLanguage } from "./descriptionAssistant";
 import type { BatteryData, ListingDraft } from "./types";
 
 type SnapshotFieldKey =
@@ -18,6 +18,7 @@ type SnapshotFields = Record<SnapshotFieldKey, string>;
 
 export type DescriptionSnapshot = {
   mode: DescriptionAssistantMode;
+  language?: DescriptionLanguage;
   description: string;
   fields: SnapshotFields;
 };
@@ -53,9 +54,11 @@ export function createDescriptionSnapshot(
   listing: ListingDraft,
   mode: DescriptionAssistantMode,
   description: string,
+  language?: DescriptionLanguage,
 ): DescriptionSnapshot {
   return {
     mode,
+    language,
     description,
     fields: getSnapshotFields(listing),
   };

@@ -18,7 +18,8 @@ import { Button } from "@/components/ui/button";
 import { demoListings, emptyListingDraft } from "@/lib/listing-doctor/demoListings";
 import {
   type DescriptionAssistantMode,
-  generateListingDescription,
+  type DescriptionAssistantResult,
+  type DescriptionLanguage,
 } from "@/lib/listing-doctor/descriptionAssistant";
 import { canDiagnoseDraft } from "@/lib/listing-doctor/diagnosisReadiness";
 import {
@@ -129,7 +130,10 @@ export function ListingDoctorApp() {
   );
 
   useEffect(() => {
-    if (activePage !== "details") setShowFullReport(false);
+    if (activePage !== "details") {
+      setShowFullReport(false);
+      setDiagnosisError(null);
+    }
   }, [activePage]);
 
   useEffect(() => {
@@ -219,26 +223,40 @@ export function ListingDoctorApp() {
   const handleDescriptionGenerated = (
     mode: DescriptionAssistantMode,
     generatedDescription: string,
+    language?: DescriptionLanguage,
   ) => {
-    setDescriptionSnapshot(createDescriptionSnapshot(listing, mode, generatedDescription));
+    setDescriptionSnapshot(createDescriptionSnapshot(listing, mode, generatedDescription, language));
     setDescriptionTouchedAfterGeneration(false);
     setAllowStaleDescription(false);
     setStaleDescriptionWarningVisible(false);
   };
 
-  const refreshGeneratedDescription = () => {
+  const refreshGeneratedDescription = async () => {
     if (!descriptionSnapshot) return;
 
-    const result = generateListingDescription(listing, descriptionSnapshot.mode);
-    const nextListing = { ...listing, description: result.description };
+    try {
+      const result = await requestDescriptionAssistance(
+        listing,
+        descriptionSnapshot.mode,
+        descriptionSnapshot.language ?? "en",
+      );
+      const nextListing = { ...listing, description: result.description };
 
-    setListing(nextListing);
-    setDescriptionSnapshot(
-      createDescriptionSnapshot(nextListing, descriptionSnapshot.mode, result.description),
-    );
-    setDescriptionTouchedAfterGeneration(false);
-    setAllowStaleDescription(false);
-    setStaleDescriptionWarningVisible(false);
+      setListing(nextListing);
+      setDescriptionSnapshot(
+        createDescriptionSnapshot(
+          nextListing,
+          descriptionSnapshot.mode,
+          result.description,
+          descriptionSnapshot.language,
+        ),
+      );
+      setDescriptionTouchedAfterGeneration(false);
+      setAllowStaleDescription(false);
+      setStaleDescriptionWarningVisible(false);
+    } catch (error) {
+      setDiagnosisError(error instanceof Error ? error.message : "Could not refresh generated description");
+    }
   };
 
   const continueWithStaleDescription = () => {
@@ -352,7 +370,7 @@ export function ListingDoctorApp() {
         </header>
         <div className="grid gap-5 xl:grid-cols-[minmax(0,830px)_440px]">
           <section aria-label="Draft listing editor">
-            {diagnosisError ? (
+            {activePage === "details" && diagnosisError ? (
               <div className="mb-3 flex gap-2 rounded-[3px] border border-danger/30 bg-danger/10 p-2 text-xs font-bold leading-5 text-danger">
                 <AlertTriangle className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
                 <span>{diagnosisError}</span>
@@ -372,6 +390,7 @@ export function ListingDoctorApp() {
             ) : null}
 
             <ListingEditor
+              key={activePage}
               page={activePage}
               listing={listing}
               selectedDemoId={selectedDemoId}
@@ -609,6 +628,28 @@ function getFooterDiagnosisText(report: ListingReport | null, status: DiagnosisS
   if (status === "loading") return "Refreshing listing score";
   if (status === "error") return "Score refresh failed";
   return "Score pending";
+}
+
+async function requestDescriptionAssistance(
+  listing: ListingDraft,
+  mode: DescriptionAssistantMode,
+  language: DescriptionLanguage,
+) {
+  const response = await fetch("/api/assist-description", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ listing, mode, language }),
+  });
+  const payload = (await response.json()) as DescriptionAssistantResult | ApiErrorResponse;
+
+  if (!response.ok || "error" in payload) {
+    const details = "details" in payload && payload.details?.length
+      ? ` ${payload.details.join(" ")}`
+      : "";
+    throw new Error(`${"error" in payload ? payload.error : "Could not assist description"}.${details}`);
+  }
+
+  return payload;
 }
 
 function cloneListing(listing: ListingDraft | undefined): ListingDraft {

@@ -1,4 +1,5 @@
 import { analyzeListing } from "./analyze";
+import { generateListingDescription } from "./descriptionAssistant";
 import type { ListingDraft, ListingReport } from "./types";
 
 export function generateReport(listing: ListingDraft): ListingReport {
@@ -31,33 +32,7 @@ function buildImprovedTitle(listing: ListingDraft) {
 }
 
 function buildRewrittenDescription(listing: ListingDraft) {
-  const features = listing.keyFeatures.length
-    ? listing.keyFeatures.join(", ")
-    : "add the most important equipment before publishing";
-
-  const trustLines = [
-    `MFK: ${formatStatus(listing.mfkStatus)}.`,
-    `Service history: ${formatStatus(listing.serviceHistoryStatus)}.`,
-    `Accident history: ${formatStatus(listing.accidentHistoryStatus)}.`,
-    `Warranty: ${formatStatus(listing.warrantyStatus)}.`,
-  ];
-
-  const buyerProof =
-    listing.mfkStatus === "valid" &&
-    listing.serviceHistoryStatus === "complete" &&
-    listing.accidentHistoryStatus === "accident-free"
-      ? "The key trust signals are already strong, so keep the documentation visible in the photos."
-      : "Clarify any missing documentation before publishing so buyers understand the vehicle condition immediately.";
-
-  return [
-    `${listing.year} ${listing.make} ${listing.model} with ${listing.mileageKm.toLocaleString("de-CH")} km, ${listing.fuelType.toLowerCase()} powertrain, ${listing.transmission.toLowerCase()} transmission, and ${listing.bodyType.toLowerCase()} body style.`,
-    trustLines.join(" "),
-    `Key equipment: ${features}.`,
-    buyerProof,
-    listing.sellerNotes ? `Seller note: ${listing.sellerNotes}` : "",
-  ]
-    .filter(Boolean)
-    .join("\n\n");
+  return generateListingDescription(listing, "scratch").description;
 }
 
 function buildPrePublishChecklist(listing: ListingDraft) {
@@ -78,10 +53,6 @@ function buildPrePublishChecklist(listing: ListingDraft) {
   }
 
   return checklist;
-}
-
-function formatStatus(value: string) {
-  return value.replace(/-/g, " ");
 }
 
 function formatWarranty(value: string) {

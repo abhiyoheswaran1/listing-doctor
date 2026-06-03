@@ -11,19 +11,27 @@ Tagline: **Your listing's conversion coach.**
 - Calls the shared rule-based diagnosis engine through `POST /api/diagnose-listing`.
 - Renders a compact Listing Coach assistant beside the insertion flow with the live score, current section focus, and one recommended action.
 - Keeps the Listing Coach assistant inside the visible browser height; lower-priority details collapse on shorter screens instead of forcing a second scroll.
-- Adds description-assistant actions that can write concise buyer-facing SEO copy from listing data or improve the seller's own text using local successful synthetic comparables.
+- Adds description-assistant actions that call `POST /api/assist-description` to write concise buyer-facing SEO copy or improve seller text. The endpoint uses OpenAI when configured and falls back to deterministic local copy.
+- Checks seller-written claims against structured listing facts before publishing generated copy.
 - Warns when generated description copy may be stale after important source fields change, with explicit refresh/review/continue actions.
 - Adds a simulated ML-style prediction layer based on local synthetic comparables: confidence, expected enquiry lift, likely buyer objections, first-contact timing, and performance signals.
 - Scores equipment by catalogue confirmation and accuracy, not by pushing sellers to select optional extras their car does not have.
 - Keeps the full diagnosis report available behind an explicit **Review report** action.
 
-The MVP has no authentication, database, external AI call, live URL fetch, scraping, or real AutoScout24 integration.
+The MVP has no authentication, database, live URL fetch, scraping, or real AutoScout24 integration. OpenAI is optional and only used for description assistance; scoring remains deterministic.
 
 ## Run Locally
 
 ```bash
 npm install
 npm run dev
+```
+
+OpenAI description assistance is optional. Add your real key to `.env.local`; if the key is missing or the API call fails, the app uses the deterministic local assistant:
+
+```bash
+OPENAI_API_KEY=replace_with_your_openai_api_key
+OPENAI_MODEL=gpt-5-mini
 ```
 
 Open:
@@ -60,7 +68,7 @@ This harness does not run external AI, does not run a background daemon, and doe
 3. Page 1: identify make, model, production year, and production month from the local catalogue.
 4. Page 2: pick the exact version filtered by that production date.
 5. Page 3: edit condition, price, equipment, technical data, EV battery data, images, and description.
-6. In the description section, use **Help me write** for a fresh draft or **Make mine better** to improve seller-written text.
+6. In the description section, choose a language and use **Help me write** for a fresh draft or **Make mine better** to improve seller-written text.
 7. Change a trust field such as MFK after generating text to show the stale-description warning.
 8. Click the compact **Refresh** backup action or edit fields and watch the API-backed report refresh.
 9. Highlight the Coach rail: live score, current section focus, and one action for the field group the seller is editing.
@@ -117,18 +125,68 @@ curl -X POST http://127.0.0.1:3020/api/diagnose-listing \
   }'
 ```
 
+### `POST /api/assist-description`
+
+Writes or polishes buyer-facing listing copy. The route validates the listing payload, checks seller claims against structured fields, calls OpenAI when `OPENAI_API_KEY` is configured, and falls back to deterministic local copy when OpenAI is unavailable or returns unsupported claims.
+
+```bash
+curl -X POST http://127.0.0.1:3020/api/assist-description \
+  -H "Content-Type: application/json" \
+  -d '{
+    "mode": "scratch",
+    "language": "en",
+    "listing": {
+      "id": "api-demo-bmw",
+      "name": "API demo BMW",
+      "make": "BMW",
+      "model": "320d Touring",
+      "version": "xDrive Steptronic",
+      "year": 2019,
+      "priceChf": 24900,
+      "mileageKm": 112000,
+      "fuelType": "Diesel",
+      "transmission": "Automatic",
+      "bodyType": "Estate",
+      "sellerType": "dealer",
+      "mfkStatus": "valid",
+      "serviceHistoryStatus": "partial",
+      "accidentHistoryStatus": "unknown",
+      "warrantyStatus": "none",
+      "description": "",
+      "photoCount": 4,
+      "photoChecklist": {
+        "frontExterior": true,
+        "rearExterior": true,
+        "leftSide": false,
+        "rightSide": false,
+        "interior": false,
+        "dashboard": false,
+        "odometer": false,
+        "tyres": false,
+        "serviceBook": false,
+        "defectsDamage": false
+      },
+      "keyFeatures": ["Automatic", "Navigation"]
+    }
+  }'
+```
+
+Response fields include `provider`, `description`, `title`, `factsUsed`, `writingWarnings`, `claimsNotUsed`, and `buyerObjections`.
+
 ## Architecture
 
 - `app/page.tsx`: app entry point.
 - `app/providers.tsx`: AutoScout24 theme and hosted Make It Sans font provider from `@smg-automotive/components`.
 - `app/api/diagnose-listing/route.ts`: structured listing diagnosis API.
+- `app/api/assist-description/route.ts`: optional OpenAI-backed description assistance API with deterministic fallback.
 - `components/listing-doctor/*`: insertion editor, live Coach rail, and reusable diagnosis report.
 - `components/ui/*`: lightweight primitives. The local button wrapper uses the official SMG Automotive button while preserving the app's existing API.
 - `lib/listing-doctor/types.ts`: shared listing, report, and API response types.
 - `lib/listing-doctor/diagnosisReadiness.ts`: prevents early API diagnosis before version-derived core vehicle data exists.
 - `lib/listing-doctor/analyze.ts`: single source of truth for rule-based scoring.
-- `lib/listing-doctor/generateReport.ts`: diagnosis report generation.
-- `lib/listing-doctor/descriptionAssistant.ts`: deterministic concise SEO description drafting and rewrite helper.
+- `lib/listing-doctor/generateReport.ts`: diagnosis report wrapper for improved titles, checklists, and shared description output.
+- `lib/listing-doctor/assistDescription.ts`: server-side OpenAI orchestration, claim checking, language selection, and fallback behavior.
+- `lib/listing-doctor/descriptionAssistant.ts`: single source for deterministic buyer-facing SEO description drafting and rewrite behavior.
 - `lib/listing-doctor/descriptionStaleness.ts`: generated-description source-field snapshot and stale-copy detection.
 - `lib/listing-doctor/predictiveInsights.ts`: simulated ML-style prediction layer from synthetic comparables and explainable scores.
 - `lib/listing-doctor/demoListings.ts`: four curated fictional Swiss demo listings.
@@ -140,9 +198,11 @@ curl -X POST http://127.0.0.1:3020/api/diagnose-listing \
 
 - Pricing benchmarks use local synthetic data, not real market pricing.
 - Image upload is local state metadata only. There is no real image analysis or persistence.
-- All diagnosis, rewrite, recommendations, buyer questions, and scoring are deterministic TypeScript rules.
+- Diagnosis, score calculation, pricing feedback, recommendations, and simulated predictions are deterministic TypeScript rules.
+- Description writing can use OpenAI when configured, but it is claim-checked and falls back to deterministic copy.
 - Equipment scoring assumes seller honesty. It rewards confirming known standard equipment and selecting only real optional equipment; it does not verify physical equipment.
-- Description assistance uses the current draft and local synthetic successful comparables. It does not use real seller history, real buyer behavior data, or an external AI model.
+- Description assistance uses the current draft and local synthetic successful comparables. OpenAI can rewrite phrasing, but it does not receive real seller history or real buyer behavior data.
+- Generated descriptions only use confirmed draft fields. Uncertain seller notes, for example wording such as "may be available", are not published as facts and are shown as writing warnings instead.
 - The predictive layer is simulated from synthetic comparable listings and explainable scores. It is not a trained model and should not be presented as real ML.
 - No authentication, rate limiting, monitoring, persistence, live URL fetch, scraping, or production AutoScout24 system integration is implemented.
 - Official SMG Automotive component usage is partial: theme, hosted fonts, AutoScout24 iconography, and button styling are integrated, but the whole form system is not fully migrated.

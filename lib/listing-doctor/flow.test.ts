@@ -44,6 +44,44 @@ describe("insertion flow state", () => {
     expect(versionState.footerStatus).toBe("Version selected, continue to listing data");
   });
 
+  it("continues from the Mercedes-Benz GLC 300e January 2026 identification used in the demo", () => {
+    const listing = {
+      ...demoListings[0],
+      make: "Mercedes-Benz",
+      model: "GLC 300e 4MATIC",
+      productionMonth: "January",
+      productionYear: 2026,
+      version: "",
+      fuelType: "",
+      transmission: "",
+      bodyType: "",
+    };
+
+    const state = getInsertionFlowState({
+      listing,
+      activePage: "identify",
+      completion: 35,
+    });
+
+    expect(state.validProductionDate).toBe(true);
+    expect(state.availableVersions).toHaveLength(2);
+    expect(state.canContinue).toBe(true);
+    expect(state.nextPage).toBe("version");
+    expect(state.footerStatus).toBe("Catalogue identity ready for version selection");
+  });
+
+  it("does not mark future steps complete while the seller is still on vehicle identification", () => {
+    const state = getInsertionFlowState({
+      listing: demoListings[0],
+      activePage: "identify",
+      completion: 100,
+    });
+
+    expect(state.isPageComplete("identify")).toBe(true);
+    expect(state.isPageComplete("version")).toBe(false);
+    expect(state.isPageComplete("details")).toBe(false);
+  });
+
   it("only marks the listing data page complete while the seller is on the live Coach page", () => {
     const bmw = demoListings[0];
     const identifyState = getInsertionFlowState({

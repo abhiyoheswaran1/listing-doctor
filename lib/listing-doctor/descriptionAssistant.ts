@@ -2,14 +2,22 @@ import { getComparablePastListings } from "./pastListings";
 import type { ListingDraft, PastListing } from "./types";
 
 export type DescriptionAssistantMode = "scratch" | "polish";
+export type DescriptionLanguage = "en" | "de" | "fr" | "it";
+export type DescriptionAssistantProvider = "deterministic" | "openai" | "openai-sanitized";
 
 export type DescriptionAssistantResult = {
   description: string;
+  title?: string;
   comparableCount: number;
   successfulComparableCount: number;
   sourceSummary: string;
   styleNotes: string[];
   writingWarnings: string[];
+  factsUsed?: string[];
+  claimsNotUsed?: string[];
+  buyerObjections?: string[];
+  provider?: DescriptionAssistantProvider;
+  language?: DescriptionLanguage;
 };
 
 type ComparableContext = {
@@ -81,6 +89,14 @@ function buildSeoOpening(listing: ListingDraft) {
 
   const specification = details.length ? `, ${formatList(details)}` : "";
 
+  if (isElectricListing(listing)) {
+    return `${listing.year} ${listing.make} ${listing.model}${version} listed in Switzerland with ${mileage}${specification}.`;
+  }
+
+  if (hasStrongTrustProof(listing)) {
+    return `Swiss-market ${listing.year} ${listing.make} ${listing.model}${version} available in Switzerland with ${mileage}${specification}.`;
+  }
+
   return `${listing.year} ${listing.make} ${listing.model}${version} for sale in Switzerland with ${mileage}${specification}.`;
 }
 
@@ -110,7 +126,7 @@ function buildProofParagraph(listing: ListingDraft) {
   if (!facts.length && !segmentNote) return "";
 
   return [
-    facts.length ? `Documentation: ${capitalize(formatList(facts))}.` : "",
+    facts.length ? `${getProofLabel(listing)}: ${capitalize(formatList(facts))}.` : "",
     segmentNote,
   ]
     .filter(Boolean)
@@ -128,7 +144,7 @@ function buildEquipmentParagraph(listing: ListingDraft) {
     return "";
   }
 
-  return `Equipment highlights include ${formatList(equipment)}.`;
+  return `${getEquipmentIntro(listing)} ${formatList(equipment)}.`;
 }
 
 function buildSegmentNote(listing: ListingDraft) {
@@ -141,21 +157,17 @@ function buildSegmentNote(listing: ListingDraft) {
       listing.warrantyStatus === "battery warranty" ? "battery warranty" : "",
     ].filter(Boolean);
 
-    return batteryDetails.length
-      ? `EV buyer proof: ${batteryDetails.join(", ")}.`
-      : "";
-  }
-
-  if (/diesel/i.test(listing.fuelType) && listing.mileageKm >= 140000) {
-    return `For this high-mileage diesel, buyers will usually check maintenance history, tyre condition, and recent work during viewing.`;
+    return batteryDetails.length ? `Battery and charging: ${batteryDetails.join(", ")}.` : "";
   }
 
   return "";
 }
 
 function buildClosingParagraph(listing: ListingDraft) {
+  if (hasUnconfirmedSellerNote(listing.sellerNotes ?? "")) return "";
+
   const notes = cleanSellerText(listing.sellerNotes ?? "");
-  if (notes) return `Additional seller information: ${notes}`;
+  if (notes) return `Seller note: ${notes}`;
 
   return "";
 }
@@ -166,6 +178,9 @@ function getWritingWarnings(listing: ListingDraft) {
     listing.serviceHistoryStatus !== "complete" ? "Add service invoices or service book proof if available." : "",
     listing.accidentHistoryStatus === "unknown" ? "State accident history clearly before publishing." : "",
     listing.warrantyStatus === "none" || listing.warrantyStatus === "unknown" ? "Clarify warranty terms or sold-as-seen terms." : "",
+    hasUnconfirmedSellerNote(listing.sellerNotes ?? "")
+      ? "Confirm seller notes before adding them to the public description."
+      : "",
   ].filter(Boolean);
 }
 
@@ -247,18 +262,58 @@ function isElectricListing(listing: ListingDraft) {
   return /electric|tesla|ev/i.test(`${listing.fuelType} ${listing.make} ${listing.model}`);
 }
 
+function hasStrongTrustProof(listing: ListingDraft) {
+  return (
+    listing.mfkStatus === "valid" &&
+    listing.serviceHistoryStatus === "complete" &&
+    listing.accidentHistoryStatus === "accident-free" &&
+    listing.warrantyStatus !== "none" &&
+    listing.warrantyStatus !== "unknown"
+  );
+}
+
+function getProofLabel(listing: ListingDraft) {
+  if (isElectricListing(listing)) return "Proof and battery documentation";
+  if (hasStrongTrustProof(listing)) return "Proof and documentation";
+  return "Documented facts";
+}
+
+function getEquipmentIntro(listing: ListingDraft) {
+  if (isElectricListing(listing)) return "Technology and equipment include";
+  if (/hybrid/i.test(listing.fuelType)) return "Comfort and driver-assistance equipment include";
+  if (listing.mileageKm >= 140000) return "Useful equipment includes";
+  return "Notable equipment includes";
+}
+
+function hasUnconfirmedSellerNote(value: string) {
+  return /\b(may|might|maybe|possibly|probably|perhaps|tbc|to be confirmed|not sure|available on request|can be discussed|if needed)\b/i.test(
+    value,
+  );
+}
+
 function isAssistantGeneratedDescription(value: string, listing: ListingDraft) {
   const normalized = value.toLowerCase();
   const identity = `${listing.year} ${listing.make} ${listing.model}`.toLowerCase();
 
   return (
     normalized.includes(identity) &&
-    normalized.includes("for sale in switzerland") &&
+    (normalized.includes("for sale in switzerland") ||
+      normalized.includes("listed in switzerland") ||
+      normalized.includes("available in switzerland") ||
+      normalized.includes("swiss-market")) &&
     [
       "equipment highlights include",
+      "notable equipment includes",
+      "useful equipment includes",
+      "technology and equipment include",
+      "comfort and driver-assistance equipment include",
       "searchable equipment and options include",
       "trust and documentation",
-      "additional seller information",
+      "proof and documentation",
+      "proof and battery documentation",
+      "documented facts",
+      "seller note:",
+      "battery and charging",
       "key information buyers search",
     ].some((marker) => normalized.includes(marker))
   );
